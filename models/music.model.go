@@ -6,6 +6,7 @@ var schemaMusic = `
 CREATE TABLE stream.musics (
 	music_id uuid DEFAULT gen_random_uuid() NOT NULL,
 	artis uuid NULL,
+	slug varchar(100) NOT NULL,
 	title varchar(100) NOT NULL,
 	release_date date NOT NULL,
 	cover varchar NOT NULL,
@@ -13,6 +14,7 @@ CREATE TABLE stream.musics (
 	created_at timestamp DEFAULT NOW() NULL,
 	updated_at timestamp NULL,
 	CONSTRAINT musics_pk PRIMARY KEY (music_id),
+	CONSTRAINT musics_unique UNIQUE (slug),
 	CONSTRAINT musics_artis_fk FOREIGN KEY (artis) REFERENCES stream.artis(artis_id) ON DELETE SET NULL
 );
 `
