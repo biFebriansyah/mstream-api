@@ -4,6 +4,9 @@ import (
 	"biFebriansyah/gostream/config"
 	"biFebriansyah/gostream/models"
 	"errors"
+	"fmt"
+	"log"
+	"math"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -12,15 +15,28 @@ type ArtiRepo struct {
 	db *sqlx.DB
 }
 
+type Pagination struct {
+	Name  string
+	Page  int32
+	Limit int32
+}
+
+type filterParams struct {
+	param  string
+	column string
+}
+
 func NewArtis(db *sqlx.DB) *ArtiRepo {
 	return &ArtiRepo{db}
 }
 
 func (repo *ArtiRepo) InsertData(data *models.Artis) (int64, error) {
 	q := `INSERT INTO stream.artis ("name", slug, nationality) VALUES(:name, :slug, :nationality)`
+	log.Println(data)
 
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {
+		fmt.Println(err)
 		return 0, errors.New(config.BadData)
 	}
 
@@ -51,19 +67,53 @@ func (repo *ArtiRepo) DeleteData(uid string) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (repo *ArtiRepo) GetAllData() (*models.Arties, error) {
-	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
-	FROM stream.artis ORDER BY created_at DESC`
+func (repo *ArtiRepo) GetAllData(params Pagination) (*config.ResultWarp, error) {
+	var data = new(models.Arties)
+	var metaResult = new(config.Meta)
+	var filterQuery string
+	var metaQuery string
+	// var orderQuery string
 
-	var data models.Arties
-	if err := repo.db.Select(&data, q); err != nil {
+	filterConditions := []filterParams{
+		{param: params.Name, column: "name"},
+	}
+
+	for _, v := range filterConditions {
+		if v.param != "" {
+			filterQuery += fmt.Sprintf(`AND %s = '%s' `, v.column, v.param)
+		}
+	}
+
+	if params.Page != 0 && params.Limit != 0 {
+		offset := (params.Page - 1) * params.Limit
+		metaQuery = fmt.Sprintf("LIMIT %d OFFSET %d", params.Limit, offset)
+	}
+
+	countQuery := fmt.Sprintf(`SELECT COUNT(artis_id) as "count" FROM stream.artis WHERE true %s`, filterQuery)
+	err := repo.db.Get(&metaResult.Total, repo.db.Rebind(countQuery))
+	if err != nil {
+		return nil, errors.New(config.BadData)
+	}
+
+	if metaResult.Total > 0 {
+		if params.Page != int32(math.Ceil(float64(metaResult.Total)/float64(params.Limit))) {
+			metaResult.Next = params.Page + 1
+		}
+	}
+	if params.Page > 1 {
+		metaResult.Prev = params.Page - 1
+	}
+
+	q := fmt.Sprintf(`SELECT artis_id, "name", slug, nationality, created_at, updated_at
+	FROM stream.artis WHERE true %s ORDER BY created_at DESC %s `, filterQuery, metaQuery)
+	if err := repo.db.Select(data, repo.db.Rebind(q)); err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, errors.New(config.NotFound)
 		}
 		return nil, err
 	}
 
-	return &data, nil
+	return &config.ResultWarp{Data: data, Meta: metaResult}, nil
 }
 
 func (repo *ArtiRepo) GetDataById(uid string) (*models.Artis, error) {

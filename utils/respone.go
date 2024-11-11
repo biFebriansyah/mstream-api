@@ -1,12 +1,16 @@
 package utils
 
-import "reflect"
+import (
+	"biFebriansyah/gostream/config"
+	"reflect"
+)
 
 type response struct {
-	Status  int         `json:"status"`
-	IsError bool        `json:"isError"`
-	Data    interface{} `json:"result,omitempty"`
-	Message interface{} `json:"message,omitempty"`
+	Status  int  `json:"status"`
+	IsError bool `json:"isError"`
+	Data    any  `json:"data,omitempty"`
+	Meta    any  `json:"meta,omitempty"`
+	Message any  `json:"message,omitempty"`
 }
 
 func Respone(data interface{}) *response {
@@ -15,10 +19,19 @@ func Respone(data interface{}) *response {
 		IsError: false,
 	}
 
-	if reflect.TypeOf(data) != reflect.TypeOf("string") {
-		result.Data = data
+	if res, ok := data.(*config.ResultWarp); ok {
+		if res.Data != nil {
+			result.Data = res.Data
+		}
+		if res.Meta != nil {
+			result.Meta = res.Meta
+		}
 	} else {
-		result.Message = data
+		if reflect.TypeOf(data).String() != "string" {
+			result.Data = data
+		} else {
+			result.Message = data
+		}
 	}
 
 	return result

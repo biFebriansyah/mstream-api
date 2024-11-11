@@ -6,6 +6,7 @@ import (
 	"biFebriansyah/gostream/repositories"
 	"biFebriansyah/gostream/utils"
 	"fmt"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	fiberutil "github.com/gofiber/fiber/v2/utils"
@@ -91,7 +92,11 @@ func (artis *artisHandler) FetchBySlug(ctx *fiber.Ctx) error {
 }
 
 func (artis *artisHandler) FetchAll(ctx *fiber.Ctx) error {
-	result, err := artis.repo.GetAllData()
+	name := ctx.Query("name")
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
+
+	result, err := artis.repo.GetAllData(repositories.Pagination{Name: name, Page: int32(page), Limit: int32(limit)})
 	if err != nil {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
