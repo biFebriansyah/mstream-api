@@ -15,17 +15,6 @@ type ArtiRepo struct {
 	db *sqlx.DB
 }
 
-type Pagination struct {
-	Name  string
-	Page  int32
-	Limit int32
-}
-
-type filterParams struct {
-	param  string
-	column string
-}
-
 func NewArtis(db *sqlx.DB) *ArtiRepo {
 	return &ArtiRepo{db}
 }
@@ -67,20 +56,50 @@ func (repo *ArtiRepo) DeleteData(uid string) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (repo *ArtiRepo) GetAllData(params Pagination) (*config.ResultWarp, error) {
+func (repo *ArtiRepo) GetDataById(uid string) (*models.Artis, error) {
+	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
+	FROM stream.artis WHERE artis_id = $1`
+
+	var data models.Artis
+	if err := repo.db.Get(&data, q, uid); err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, errors.New(config.NotFound)
+		}
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (repo *ArtiRepo) GetDataBySlug(slug string) (*models.Artis, error) {
+	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
+	FROM stream.artis WHERE slug = $1`
+
+	var data models.Artis
+	if err := repo.db.Get(&data, q, slug); err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, errors.New(config.NotFound)
+		}
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (repo *ArtiRepo) GetAllData(params *config.Pagination) (*config.ResultWarp, error) {
 	var data = new(models.Arties)
 	var metaResult = new(config.Meta)
 	var filterQuery string
 	var metaQuery string
 	// var orderQuery string
 
-	filterConditions := []filterParams{
-		{param: params.Name, column: "name"},
+	filterConditions := []config.FilterParams{
+		{Param: params.Name, Column: "name"},
 	}
 
 	for _, v := range filterConditions {
-		if v.param != "" {
-			filterQuery += fmt.Sprintf(`AND %s = '%s' `, v.column, v.param)
+		if v.Param != "" {
+			filterQuery += fmt.Sprintf(`AND %s = '%s' `, v.Column, v.Param)
 		}
 	}
 
@@ -114,34 +133,4 @@ func (repo *ArtiRepo) GetAllData(params Pagination) (*config.ResultWarp, error) 
 	}
 
 	return &config.ResultWarp{Data: data, Meta: metaResult}, nil
-}
-
-func (repo *ArtiRepo) GetDataById(uid string) (*models.Artis, error) {
-	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
-	FROM stream.artis WHERE artis_id = $1`
-
-	var data models.Artis
-	if err := repo.db.Get(&data, q, uid); err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, errors.New(config.NotFound)
-		}
-		return nil, err
-	}
-
-	return &data, nil
-}
-
-func (repo *ArtiRepo) GetDataBySlug(slug string) (*models.Artis, error) {
-	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
-	FROM stream.artis WHERE slug = $1`
-
-	var data models.Artis
-	if err := repo.db.Get(&data, q, slug); err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, errors.New(config.NotFound)
-		}
-		return nil, err
-	}
-
-	return &data, nil
 }

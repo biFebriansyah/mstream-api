@@ -12,17 +12,6 @@ type response struct {
 	Description interface{} `json:"description"`
 }
 
-type ResultWarp struct {
-	Data any
-	Meta any
-}
-
-type Meta struct {
-	Next  int32 `json:"next"`
-	Prev  int32 `json:"prev"`
-	Total int32 `json:"total"`
-}
-
 const (
 	NotFound   string = "NotFound"
 	BadData    string = "BadRequest"

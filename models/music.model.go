@@ -3,7 +3,7 @@ package models
 import "time"
 
 var schemaMusic = `
-CREATE TABLE stream.musics (
+CREATE TABLE stream.music (
 	music_id uuid DEFAULT gen_random_uuid() NOT NULL,
 	artis uuid NULL,
 	slug varchar(100) NOT NULL,

@@ -11,7 +11,7 @@ CREATE TABLE stream.artis (
 	created_at timestamp DEFAULT now() NULL,
 	updated_at timestamp NULL,
 	CONSTRAINT artis_pk PRIMARY KEY (artis_id),
-	CONSTRAINT artis_unique UNIQUE (artis_slug)
+	CONSTRAINT artis_unique UNIQUE (slug)
 );
 `
 

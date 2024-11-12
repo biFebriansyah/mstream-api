@@ -12,23 +12,23 @@ import (
 	fiberutil "github.com/gofiber/fiber/v2/utils"
 )
 
-type artisHandler struct {
-	repo *repositories.ArtiRepo
+type genreHandler struct {
+	repo *repositories.GenreRepo
 }
 
-func NewartisHandler(repo *repositories.ArtiRepo) *artisHandler {
-	return &artisHandler{repo}
+func NewGenreHandler(repo *repositories.GenreRepo) *genreHandler {
+	return &genreHandler{repo}
 }
 
-func (artis *artisHandler) Create(ctx *fiber.Ctx) error {
-	data := new(models.Artis)
+func (genre *genreHandler) Create(ctx *fiber.Ctx) error {
+	data := new(models.Genre)
 
 	if err := ctx.BodyParser(data); err != nil {
 		return fiber.ErrBadGateway
 	}
 
-	data.Slug = utils.Slug(data.Name)
-	result, err := artis.repo.InsertData(data)
+	data.Slug = utils.Slug(data.Genre_name)
+	result, err := genre.repo.InsertData(data)
 	if err != nil {
 		return fiber.ErrBadGateway
 	}
@@ -36,18 +36,18 @@ func (artis *artisHandler) Create(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
 }
 
-func (artis *artisHandler) Update(ctx *fiber.Ctx) error {
-	data := new(models.Artis)
+func (genre *genreHandler) Update(ctx *fiber.Ctx) error {
+	data := new(models.Genre)
 
 	if err := ctx.BodyParser(data); err != nil {
 		return fiber.ErrBadGateway
 	}
 
-	if data.Name != "" {
-		data.Slug = utils.Slug(data.Name)
+	if data.Genre_name != "" {
+		data.Slug = utils.Slug(data.Genre_name)
 	}
 
-	result, err := artis.repo.UpdateData(data)
+	result, err := genre.repo.UpdateData(data)
 	if err != nil {
 		return fiber.ErrBadGateway
 	}
@@ -55,9 +55,9 @@ func (artis *artisHandler) Update(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data updated", result)))
 }
 
-func (artis *artisHandler) Delete(ctx *fiber.Ctx) error {
+func (genre *genreHandler) Delete(ctx *fiber.Ctx) error {
 	uid := fiberutil.CopyString(ctx.Params("uuid"))
-	result, err := artis.repo.DeleteData(uid)
+	result, err := genre.repo.DeleteData(uid)
 	if err != nil {
 		return fiber.ErrBadGateway
 	}
@@ -65,9 +65,9 @@ func (artis *artisHandler) Delete(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data delete", result)))
 }
 
-func (artis *artisHandler) FetchById(ctx *fiber.Ctx) error {
+func (genre *genreHandler) FetchById(ctx *fiber.Ctx) error {
 	uid := fiberutil.CopyString(ctx.Params("uuid"))
-	result, err := artis.repo.GetDataById(uid)
+	result, err := genre.repo.GetDataById(uid)
 	if err != nil {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
@@ -78,9 +78,9 @@ func (artis *artisHandler) FetchById(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(result))
 }
 
-func (artis *artisHandler) FetchBySlug(ctx *fiber.Ctx) error {
+func (genre *genreHandler) FetchBySlug(ctx *fiber.Ctx) error {
 	slug := fiberutil.CopyString(ctx.Params("slug"))
-	result, err := artis.repo.GetDataBySlug(slug)
+	result, err := genre.repo.GetDataBySlug(slug)
 	if err != nil {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
@@ -91,7 +91,7 @@ func (artis *artisHandler) FetchBySlug(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(result))
 }
 
-func (artis *artisHandler) FetchAll(ctx *fiber.Ctx) error {
+func (genre *genreHandler) FetchAll(ctx *fiber.Ctx) error {
 	var paginate = &config.Pagination{Page: 1, Limit: 10}
 	paginate.Name = ctx.Query("name")
 
@@ -102,7 +102,7 @@ func (artis *artisHandler) FetchAll(ctx *fiber.Ctx) error {
 		paginate.Limit = int32(limit)
 	}
 
-	result, err := artis.repo.GetAllData(paginate)
+	result, err := genre.repo.GetAllData(paginate)
 	if err != nil {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
