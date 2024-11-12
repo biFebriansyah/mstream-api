@@ -39,7 +39,7 @@ func (repo *ArtiRepo) UpdateData(data *models.Artis) (int64, error) {
 		slug=COALESCE(NULLIF(:slug, ''), slug),
 		nationality=COALESCE(NULLIF(:nationality, ''), nationality),
 		updated_at=now()
-	WHERE artis_id=artis_id;
+	WHERE artis_id = :artis_id;
 	`
 
 	res, err := repo.db.NamedExec(q, data)

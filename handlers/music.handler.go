@@ -13,23 +13,23 @@ import (
 	fiberutil "github.com/gofiber/fiber/v2/utils"
 )
 
-type genreHandler struct {
-	repo *repositories.GenreRepo
+type musicHandler struct {
+	repo *repositories.MusicRepo
 }
 
-func NewGenreHandler(repo *repositories.GenreRepo) *genreHandler {
-	return &genreHandler{repo}
+func NewMusicHandler(repo *repositories.MusicRepo) *musicHandler {
+	return &musicHandler{repo}
 }
 
-func (genre *genreHandler) Create(ctx *fiber.Ctx) error {
-	data := new(models.Genre)
+func (music *musicHandler) Create(ctx *fiber.Ctx) error {
+	data := new(models.Music)
 
 	if err := ctx.BodyParser(data); err != nil {
 		return fiber.ErrBadGateway
 	}
 
-	data.Slug = utils.Slug(data.Genre_name)
-	result, err := genre.repo.InsertData(data)
+	data.Slug = utils.Slug(data.Title)
+	result, err := music.repo.InsertData(data)
 	if err != nil {
 		return fiber.ErrBadGateway
 	}
@@ -37,18 +37,18 @@ func (genre *genreHandler) Create(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
 }
 
-func (genre *genreHandler) Update(ctx *fiber.Ctx) error {
-	data := new(models.Genre)
+func (music *musicHandler) Update(ctx *fiber.Ctx) error {
+	data := new(models.Music)
 
 	if err := ctx.BodyParser(data); err != nil {
 		return fiber.ErrBadGateway
 	}
 
-	if data.Genre_name != "" {
-		data.Slug = utils.Slug(data.Genre_name)
+	if data.Title != "" {
+		data.Slug = utils.Slug(data.Title)
 	}
 
-	result, err := genre.repo.UpdateData(data)
+	result, err := music.repo.UpdateData(data)
 	if err != nil {
 		return fiber.ErrBadGateway
 	}
@@ -56,9 +56,9 @@ func (genre *genreHandler) Update(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data updated", result)))
 }
 
-func (genre *genreHandler) Delete(ctx *fiber.Ctx) error {
+func (music *musicHandler) Delete(ctx *fiber.Ctx) error {
 	uid := fiberutil.CopyString(ctx.Params("uuid"))
-	result, err := genre.repo.DeleteData(uid)
+	result, err := music.repo.DeleteData(uid)
 	if err != nil {
 		return fiber.ErrBadGateway
 	}
@@ -66,9 +66,9 @@ func (genre *genreHandler) Delete(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data delete", result)))
 }
 
-func (genre *genreHandler) FetchById(ctx *fiber.Ctx) error {
+func (music *musicHandler) FetchById(ctx *fiber.Ctx) error {
 	uid := fiberutil.CopyString(ctx.Params("uuid"))
-	result, err := genre.repo.GetDataById(uid)
+	result, err := music.repo.GetDataById(uid)
 	if err != nil {
 		log.Println(err)
 		if err.Error() == config.NotFound {
@@ -80,9 +80,9 @@ func (genre *genreHandler) FetchById(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(result))
 }
 
-func (genre *genreHandler) FetchBySlug(ctx *fiber.Ctx) error {
+func (music *musicHandler) FetchBySlug(ctx *fiber.Ctx) error {
 	slug := fiberutil.CopyString(ctx.Params("slug"))
-	result, err := genre.repo.GetDataBySlug(slug)
+	result, err := music.repo.GetDataBySlug(slug)
 	if err != nil {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
@@ -93,7 +93,7 @@ func (genre *genreHandler) FetchBySlug(ctx *fiber.Ctx) error {
 	return ctx.JSON(utils.Respone(result))
 }
 
-func (genre *genreHandler) FetchAll(ctx *fiber.Ctx) error {
+func (music *musicHandler) FetchAll(ctx *fiber.Ctx) error {
 	paginate := &config.Pagination{Page: 1, Limit: 10}
 	paginate.Name = ctx.Query("name")
 
@@ -104,7 +104,7 @@ func (genre *genreHandler) FetchAll(ctx *fiber.Ctx) error {
 		paginate.Limit = int32(limit)
 	}
 
-	result, err := genre.repo.GetAllData(paginate)
+	result, err := music.repo.GetAllData(paginate)
 	if err != nil {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound

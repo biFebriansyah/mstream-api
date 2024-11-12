@@ -13,6 +13,8 @@ func New(db *sqlx.DB) *fiber.App {
 	app.Use(recover.New())
 
 	artisRoute(app, db)
+	genreRoute(app, db)
+	musicRoute(app, db)
 
 	return app
 }

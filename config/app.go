@@ -17,7 +17,10 @@ type FilterParams struct {
 }
 
 type Pagination struct {
-	Name  string
-	Page  int32
-	Limit int32
+	Name    string
+	Title   string
+	Release string
+	Artis   string
+	Page    int32
+	Limit   int32
 }
