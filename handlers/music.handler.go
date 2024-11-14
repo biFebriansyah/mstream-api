@@ -31,7 +31,7 @@ func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 	data.Slug = utils.Slug(data.Title)
 	result, err := music.repo.InsertData(data)
 	if err != nil {
-		return fiber.ErrBadGateway
+		return err
 	}
 
 	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
@@ -70,7 +70,6 @@ func (music *musicHandler) FetchById(ctx *fiber.Ctx) error {
 	uid := fiberutil.CopyString(ctx.Params("uuid"))
 	result, err := music.repo.GetDataById(uid)
 	if err != nil {
-		log.Println(err)
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
 		}
@@ -95,7 +94,7 @@ func (music *musicHandler) FetchBySlug(ctx *fiber.Ctx) error {
 
 func (music *musicHandler) FetchAll(ctx *fiber.Ctx) error {
 	paginate := &config.Pagination{Page: 1, Limit: 10}
-	paginate.Name = ctx.Query("name")
+	paginate.Title = ctx.Query("title")
 
 	if page, err := strconv.Atoi(ctx.Query("page", "1")); err == nil {
 		paginate.Page = int32(page)

@@ -1,6 +1,23 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/lib/pq"
+)
+
+type StringArray []string
+
+func (s *StringArray) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(bytes, s)
+}
 
 var schemaMusic = `
 CREATE TABLE stream.music (
@@ -20,15 +37,17 @@ CREATE TABLE stream.music (
 `
 
 type Music struct {
-	Music_id     string     `db:"music_id" json:"music_id,omitempty" form:"music_id"`
-	Artis_id     string     `db:"artis_id" json:"artis_id" form:"artis_id"`
-	Title        string     `db:"title" json:"title" form:"title"`
-	Slug         string     `db:"slug" json:"slug" form:"slug"`
-	Release_date string     `db:"release_date" json:"release_date" form:"release_date"`
-	Cover        string     `db:"cover" json:"cover" form:"cover"`
-	Source_url   string     `db:"source_url" json:"source_url" form:"source_url"`
-	CreatedAt    *time.Time `db:"created_at" json:"created_at"`
-	UpdateAt     *time.Time `db:"updated_at" json:"updated_at"`
+	Music_id     string         `db:"music_id" json:"music_id,omitempty" form:"music_id"`
+	Artis_id     *string        `db:"artis_id" json:"artis_id" form:"artis_id"`
+	Artis        string         `db:"artis" json:"artis" form:"artis"`
+	Title        string         `db:"title" json:"title" form:"title"`
+	Slug         string         `db:"slug" json:"slug" form:"slug"`
+	Release_date *string        `db:"release_date" json:"release_date" form:"release_date"`
+	Cover        string         `db:"cover" json:"cover" form:"cover"`
+	Source_url   string         `db:"source_url" json:"source_url" form:"source_url"`
+	Genre        pq.StringArray `db:"genres" json:"genres,omitempty" form:"genres"`
+	CreatedAt    *time.Time     `db:"created_at" json:"created_at"`
+	UpdateAt     *time.Time     `db:"updated_at" json:"updated_at"`
 }
 
 type Musics []Music

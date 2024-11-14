@@ -5,7 +5,6 @@ import (
 	"biFebriansyah/gostream/models"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/jmoiron/sqlx"
@@ -21,7 +20,6 @@ func NewArtis(db *sqlx.DB) *ArtiRepo {
 
 func (repo *ArtiRepo) InsertData(data *models.Artis) (int64, error) {
 	q := `INSERT INTO stream.artis ("name", slug, nationality) VALUES(:name, :slug, :nationality)`
-	log.Println(data)
 
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {

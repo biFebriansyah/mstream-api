@@ -32,4 +32,9 @@ type Genre struct {
 	UpdateAt   *time.Time `db:"updated_at" json:"updated_at"`
 }
 
+type GenreMusic struct {
+	Music_id *string `db:"music_id" json:"music_id,omitempty" form:"music_id"`
+	Genre_id *string `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
+}
+
 type Genres []Genre
