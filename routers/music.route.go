@@ -2,6 +2,7 @@ package routers
 
 import (
 	"biFebriansyah/gostream/handlers"
+	"biFebriansyah/gostream/middleware"
 	"biFebriansyah/gostream/repositories"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +18,7 @@ func musicRoute(app *fiber.App, db *sqlx.DB) {
 	music.Get("/slug/:slug", handler.FetchBySlug)
 	music.Get("/:uuid", handler.FetchById)
 	music.Get("/", handler.FetchAll)
-	music.Post("/", handler.Create)
+	music.Post("/", middleware.Upload(), handler.Create)
 	music.Put("/", handler.Update)
 	music.Delete("/:uuid", handler.Delete)
 

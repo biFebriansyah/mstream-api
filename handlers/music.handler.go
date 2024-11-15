@@ -28,13 +28,18 @@ func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 		return fiber.ErrBadGateway
 	}
 
-	data.Slug = utils.Slug(data.Title)
-	result, err := music.repo.InsertData(data)
-	if err != nil {
-		return err
+	if ctx.Locals("file").(string) != "" {
+		log.Println(ctx.Locals("file").(string))
 	}
 
-	return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
+	// data.Slug = utils.Slug(data.Title)
+	// result, err := music.repo.InsertData(data)
+	// if err != nil {
+	// 	return err
+	// }
+
+	return ctx.JSON(utils.Respone(data))
+	// return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
 }
 
 func (music *musicHandler) Update(ctx *fiber.Ctx) error {

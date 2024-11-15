@@ -4,8 +4,6 @@ import (
 	"biFebriansyah/gostream/routers"
 	"biFebriansyah/gostream/utils"
 	"context"
-	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -45,16 +43,16 @@ func tesst() {
 	<-wait
 }
 
-func generateAudioStream() {
-	encodeAudio := EncodedAudio("input_test.mp3")
-	segmentAudio := SegmentedAudio(encodeAudio)
-	location := GenerateMasterPlaylist(segmentAudio)
+// func generateAudioStream() {
+// 	encodeAudio := EncodedAudio("input_test.mp3")
+// 	segmentAudio := SegmentedAudio(encodeAudio)
+// 	location := GenerateMasterPlaylist(segmentAudio)
 
-	gioStore := NewGIO()
-	data, err := gioStore.UploadFolder(location)
-	if err != nil {
-		log.Fatal(err)
-	}
+// 	gioStore := NewGIO()
+// 	data, err := gioStore.UploadFolder(location)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	fmt.Println(data)
-}
+// 	fmt.Println(data)
+// }
