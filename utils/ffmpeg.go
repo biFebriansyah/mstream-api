@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"biFebriansyah/gostream/repositories"
 	"bufio"
 	"fmt"
 	"log"
@@ -32,14 +33,23 @@ type outStructure struct {
 }
 
 func FFmpegExexute(uid, location string) {
-	// upload := NewGIO()
-	// encodeAudio := EncodedAudio(data)
-	// segmentAudio := SegmentedAudio(encodeAudio)
-	// location := GenerateMasterPlaylist(segmentAudio)
-	// if url, err := upload.UploadFolder(location); err == nil {
-	// 	log.Println(url)
-	// }
-	log.Println(uid, location)
+	upload := NewGIO()
+	database := NewDatabase()
+	defer database.Shutdown()
+	repos := repositories.NewMusic(database.DB)
+
+	encodeAudio := EncodedAudio(location)
+	segmentAudio := SegmentedAudio(encodeAudio)
+	locations := GenerateMasterPlaylist(segmentAudio)
+	if url, err := upload.UploadFolder(locations); err == nil {
+		_, err := repos.InsertSource(url, uid)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf(`update source url uid: %s`, uid)
+	} else {
+		log.Printf(`fail to upload with err: %s `, err.Error())
+	}
 }
 
 func GenerateMasterPlaylist(data *[]outStructure) string {

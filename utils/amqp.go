@@ -29,7 +29,7 @@ func routeMessage(body []byte) error {
 	case "ffmpeg":
 		payloadMap, ok := msg.Payload.(map[string]interface{})
 		if ok {
-			FFmpegExexute(payloadMap["uuid"].(string), payloadMap["location"].(string))
+			go FFmpegExexute(payloadMap["uuid"].(string), payloadMap["location"].(string))
 		}
 	case "hellow":
 		log.Println("hello worlds")

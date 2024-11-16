@@ -52,6 +52,12 @@ func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
 	return uid, nil
 }
 
+func (repo *MusicRepo) InsertSource(url, uid string) (int64, error) {
+	q := `UPDATE stream.music SET source_url = $1, updated_at = now() WHERE music_id = $2`
+	res := repo.db.MustExec(q, url, uid)
+	return res.RowsAffected()
+}
+
 func (repo *MusicRepo) UpdateData(data *models.Music) (int64, error) {
 	tx := repo.db.MustBegin()
 	q1 := `
