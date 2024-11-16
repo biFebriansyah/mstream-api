@@ -19,7 +19,7 @@ const (
 )
 
 type GioStores struct {
-	*s3.Client
+	s3 *s3.Client
 }
 
 type uploadFD struct {
@@ -69,7 +69,7 @@ func (c *GioStores) UploadData(locations string) (string, error) {
 		return "", err
 	}
 
-	_, err = c.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err = c.s3.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(GIOS_BUCKET),
 		Key:    aws.String(fileName),
 		Body:   file,
@@ -86,7 +86,7 @@ func (c *GioStores) UploadData(locations string) (string, error) {
 }
 
 func (c *GioStores) ListData() ([]types.Object, error) {
-	output, err := c.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+	output, err := c.s3.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: aws.String(GIOS_BUCKET),
 	})
 	if err != nil {
@@ -117,7 +117,7 @@ func (c *GioStores) UploadFolder(location string) (string, error) {
 		}
 		defer file.Close()
 
-		_, err = c.PutObject(context.TODO(), &s3.PutObjectInput{
+		_, err = c.s3.PutObject(context.TODO(), &s3.PutObjectInput{
 			Bucket: aws.String(GIOS_BUCKET),
 			Key:    aws.String(relativePath),
 			Body:   file,

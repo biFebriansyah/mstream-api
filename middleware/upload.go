@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type Config struct {
@@ -12,7 +14,7 @@ type Config struct {
 }
 
 var ConfigDefault = Config{
-	FormName: []string{"file"},
+	FormName: []string{"file", "image"},
 	DirName:  "./uploads",
 }
 
@@ -28,19 +30,24 @@ func configDefault(config ...Config) Config {
 func Upload(config ...Config) fiber.Handler {
 	cfg := configDefault(config...)
 	return func(c *fiber.Ctx) (err error) {
-		// TODO upload multiple
+		form, err := c.MultipartForm()
+		if err != nil {
+			return err
+		}
+
 		for _, v := range cfg.FormName {
-			file, err := c.FormFile(v)
-			if err != nil {
-				return err
-			}
+			uidds := uuid.New().String()[:8]
+			files := form.File[v]
+			for _, file := range files {
+				fileExt := filepath.Ext(file.Filename)
+				fileName := fmt.Sprintf("%s%s", uidds, fileExt)
+				fileLocation := fmt.Sprintf("%s/%s", cfg.DirName, fileName)
+				if err := c.SaveFile(file, fileLocation); err != nil {
+					return err
+				}
 
-			fileLocation := fmt.Sprintf("%s/%s", cfg.DirName, file.Filename)
-			if err := c.SaveFile(file, fileLocation); err != nil {
-				return err
+				c.Locals(v, fileLocation)
 			}
-
-			c.Locals("file", fileLocation)
 
 		}
 

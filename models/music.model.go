@@ -39,7 +39,7 @@ CREATE TABLE stream.music (
 type Music struct {
 	Music_id     string         `db:"music_id" json:"music_id,omitempty" form:"music_id"`
 	Artis_id     *string        `db:"artis_id" json:"artis_id" form:"artis_id"`
-	Artis        string         `db:"artis" json:"artis" form:"artis"`
+	Artis        string         `db:"artis" json:"artis,omitempty" form:"artis"`
 	Title        string         `db:"title" json:"title" form:"title"`
 	Slug         string         `db:"slug" json:"slug" form:"slug"`
 	Release_date *string        `db:"release_date" json:"release_date" form:"release_date"`

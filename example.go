@@ -1,51 +1,55 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"reflect"
+	"log"
 )
 
-type response struct {
-	Status  int  `json:"status"`
-	IsError bool `json:"isError"`
-	Data    any  `json:"data,omitempty"`
-	Meta    any  `json:"meta,omitempty"`
-	Message any  `json:"message,omitempty"`
-}
-
-type ResultWarp struct {
-	Data any
-	Meta any
+type testPayload struct {
+	Key     string      `json:"Key"`
+	Payload interface{} `json:"payload"`
 }
 
 func example() {
-	results := Respone("hello wrolds")
-	fmt.Println(results)
+	message := map[string]string{"uuid": "uuid", "location": "file"}
+	toJSON("hello", message)
 }
 
-func Respone(data interface{}) *response {
-	result := &response{
-		Status:  200,
-		IsError: false,
+func toJSON(key string, payload interface{}) {
+	payloads := testPayload{
+		Key:     key,
+		Payload: payload,
 	}
 
-	// Check if data is of type *ResultWarp
-	if res, ok := data.(*ResultWarp); ok {
-		// If data is of type *ResultWarp, set Data and Meta fields accordingly
-		if res.Data != nil {
-			result.Data = res.Data
-		}
-		if res.Meta != nil {
-			result.Meta = res.Meta
-		}
-	} else {
-		// If data is not *ResultWarp, handle it as a generic case
-		if reflect.TypeOf(data).String() != "string" {
-			result.Data = data
-		} else {
-			result.Message = data
-		}
+	data, err := json.Marshal(payloads)
+	if err != nil {
+		log.Println(err)
 	}
 
-	return result
+	ShowData(data)
+}
+
+func ShowData(body []byte) {
+	var msg testPayload
+	if err := json.Unmarshal(body, &msg); err != nil {
+		log.Println(err)
+	}
+
+	// Handle Payload as map[string]interface{}
+	payloadMap, ok := msg.Payload.(map[string]interface{})
+	if ok {
+		fmt.Println("Payload as map:", payloadMap)
+	}
+
+	// Handle Payload as string if applicable
+	payloadString, ok := msg.Payload.(string)
+	if ok {
+		fmt.Println("Payload as string:", payloadString)
+	}
+
+	// Print the raw data type
+	fmt.Printf("Payload type: %T\n", msg.Payload)
+	fmt.Printf("Payload: %+v\n", msg.Payload)
+
 }

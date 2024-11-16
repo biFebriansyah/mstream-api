@@ -15,29 +15,43 @@ import (
 
 type musicHandler struct {
 	repo *repositories.MusicRepo
+	amqp *utils.AmqpConfig
 }
 
-func NewMusicHandler(repo *repositories.MusicRepo) *musicHandler {
-	return &musicHandler{repo}
+func NewMusicHandler(repo *repositories.MusicRepo, amqp *utils.AmqpConfig) *musicHandler {
+	return &musicHandler{repo, amqp}
 }
 
 func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 	data := new(models.Music)
+	clean := utils.Cleaning()
+	upload := utils.NewGIO()
 
 	if err := ctx.BodyParser(data); err != nil {
 		return fiber.ErrBadGateway
 	}
 
-	if ctx.Locals("file").(string) != "" {
-		log.Println(ctx.Locals("file").(string))
+	if file := ctx.Locals("image").(string); file != "" {
+		if url, err := upload.UploadData(file); err == nil {
+			data.Cover = url
+			clean.Add(file)
+		}
 	}
 
-	// data.Slug = utils.Slug(data.Title)
-	// result, err := music.repo.InsertData(data)
-	// if err != nil {
-	// 	return err
-	// }
+	data.Slug = utils.Slug(data.Title)
+	result, err := music.repo.InsertData(data)
+	if err != nil {
+		return err
+	}
 
+	if file := ctx.Locals("file").(string); file != "" {
+		message := map[string]string{"uuid": result, "location": file}
+		if err := music.amqp.NewPublisher("ffmpeg", message); err != nil {
+			return fiber.ErrBadGateway
+		}
+	}
+
+	go clean.Run()
 	return ctx.JSON(utils.Respone(data))
 	// return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
 }

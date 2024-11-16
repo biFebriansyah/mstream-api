@@ -19,7 +19,7 @@ func NewMusic(db *sqlx.DB) *MusicRepo {
 	return &MusicRepo{db}
 }
 
-func (repo *MusicRepo) InsertData(data *models.Music) (int64, error) {
+func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
 	var uid string
 	tx := repo.db.MustBegin()
 	stm, _ := tx.Preparex(`INSERT INTO stream.music (artis_id, slug, title, release_date, cover, source_url)
@@ -28,9 +28,9 @@ func (repo *MusicRepo) InsertData(data *models.Music) (int64, error) {
 	err := stm.Get(&uid, data.Artis_id, data.Slug, data.Title, data.Release_date, data.Cover, data.Source_url)
 	if err != nil {
 		if errrb := tx.Rollback(); errrb != nil {
-			return 0, errrb
+			return uid, errrb
 		}
-		return 0, err
+		return uid, err
 	}
 
 	q := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_musics_unique DO NOTHING;`
@@ -39,17 +39,17 @@ func (repo *MusicRepo) InsertData(data *models.Music) (int64, error) {
 		_, err := tx.NamedExec(q, genreMusicData)
 		if err != nil {
 			if errrb := tx.Rollback(); errrb != nil {
-				return 0, errrb
+				return uid, errrb
 			}
-			return 0, err
+			return uid, err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, err
+		return uid, err
 	}
 
-	return int64(1), nil
+	return uid, nil
 }
 
 func (repo *MusicRepo) UpdateData(data *models.Music) (int64, error) {

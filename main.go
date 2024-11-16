@@ -10,9 +10,13 @@ import (
 )
 
 func main() {
+	example()
 	database := utils.NewDatabase()
-	routers := routers.New(database.DB)
+	amqpConnection := utils.NewAmqpConn()
+	routers := routers.New(database.DB, amqpConnection)
 	server := utils.NewServer(routers)
+
+	go amqpConnection.NewConsumer()
 
 	wait := utils.GracefulShutdown(context.Background(), 2*time.Second, map[string]utils.Operation{
 		"database": func(ctx context.Context) error {
@@ -21,38 +25,10 @@ func main() {
 		"server": func(ctx context.Context) error {
 			return server.Shutdown()
 		},
-	})
-
-	<-wait
-}
-
-func tesst() {
-	database := utils.NewDatabase()
-	routers := routers.New(database.DB)
-	server := utils.NewServer(routers)
-
-	wait := utils.GracefulShutdown(context.Background(), 2*time.Second, map[string]utils.Operation{
-		"database": func(ctx context.Context) error {
-			return database.Close()
-		},
-		"server": func(ctx context.Context) error {
-			return server.Shutdown()
+		"Amqp": func(ctx context.Context) error {
+			return amqpConnection.Conn.Close()
 		},
 	})
 
 	<-wait
 }
-
-// func generateAudioStream() {
-// 	encodeAudio := EncodedAudio("input_test.mp3")
-// 	segmentAudio := SegmentedAudio(encodeAudio)
-// 	location := GenerateMasterPlaylist(segmentAudio)
-
-// 	gioStore := NewGIO()
-// 	data, err := gioStore.UploadFolder(location)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	fmt.Println(data)
-// }

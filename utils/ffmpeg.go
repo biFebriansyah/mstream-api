@@ -23,21 +23,32 @@ var birates = []string{"128k", "64k", "32k"}
 const encodeOutFolder string = "./output/encode/"
 const segmenOutFolder string = "./output/segment/"
 
-type OutStructure struct {
+type outStructure struct {
 	uid      string
 	name     string
 	folder   string
-	location string
+	Location string
 	bitrate  string
 }
 
-func GenerateMasterPlaylist(data *[]OutStructure) string {
+func FFmpegExexute(uid, location string) {
+	// upload := NewGIO()
+	// encodeAudio := EncodedAudio(data)
+	// segmentAudio := SegmentedAudio(encodeAudio)
+	// location := GenerateMasterPlaylist(segmentAudio)
+	// if url, err := upload.UploadFolder(location); err == nil {
+	// 	log.Println(url)
+	// }
+	log.Println(uid, location)
+}
+
+func GenerateMasterPlaylist(data *[]outStructure) string {
 	var saveLine []string
 	var folderUID string
 	saveLine = append(saveLine, "#EXTM3U", "#EXT-X-VERSION:3")
 
 	for _, v := range *data {
-		readFile, err := os.Open(v.location)
+		readFile, err := os.Open(v.Location)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -79,8 +90,8 @@ func GenerateMasterPlaylist(data *[]OutStructure) string {
 
 }
 
-func EncodedAudio(inFileName string) *[]OutStructure {
-	var outFile []OutStructure
+func EncodedAudio(inFileName string) *[]outStructure {
+	var outFile []outStructure
 	foderUID := uuid.New().String()
 
 	for _, v := range birates {
@@ -105,10 +116,10 @@ func EncodedAudio(inFileName string) *[]OutStructure {
 			panic(err)
 		}
 
-		outFile = append(outFile, OutStructure{
+		outFile = append(outFile, outStructure{
 			uid:      foderUID[:8],
 			name:     fileName,
-			location: outName,
+			Location: outName,
 			bitrate:  v,
 		})
 	}
@@ -116,8 +127,8 @@ func EncodedAudio(inFileName string) *[]OutStructure {
 	return &outFile
 }
 
-func SegmentedAudio(inStructure *[]OutStructure) *[]OutStructure {
-	var outFile []OutStructure
+func SegmentedAudio(inStructure *[]outStructure) *[]outStructure {
+	var outFile []outStructure
 	for _, v := range *inStructure {
 		folderName := segmenOutFolder + v.uid + "/"
 		if _, err := os.Stat(folderName); os.IsNotExist(err) {
@@ -129,7 +140,7 @@ func SegmentedAudio(inStructure *[]OutStructure) *[]OutStructure {
 
 		outName := folderName + v.name + ".m3u8"
 		masterPl := "master_" + v.bitrate + ".m3u8"
-		err := ffmpeg.Input(v.location).
+		err := ffmpeg.Input(v.Location).
 			Output(outName, ffmpeg.KwArgs{
 				"c":                 "copy",
 				"f":                 "hls",
@@ -143,10 +154,10 @@ func SegmentedAudio(inStructure *[]OutStructure) *[]OutStructure {
 			panic(err)
 		}
 
-		outFile = append(outFile, OutStructure{
+		outFile = append(outFile, outStructure{
 			name:     masterPl,
 			folder:   folderName,
-			location: folderName + masterPl,
+			Location: folderName + masterPl,
 			bitrate:  v.bitrate,
 		})
 	}
