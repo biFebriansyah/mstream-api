@@ -1,28 +1,14 @@
 package models
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/lib/pq"
 )
 
-type StringArray []string
-
-func (s *StringArray) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("expected []byte, got %T", value)
-	}
-
-	return json.Unmarshal(bytes, s)
-}
-
 var schemaMusic = `
 CREATE TABLE stream.music (
 	music_id uuid DEFAULT gen_random_uuid() NOT NULL,
-	artis_id uuid NULL,
 	slug varchar(100) NOT NULL,
 	title varchar(100) NOT NULL,
 	release_date date NOT NULL,
@@ -31,8 +17,17 @@ CREATE TABLE stream.music (
 	created_at timestamp DEFAULT NOW() NULL,
 	updated_at timestamp NULL,
 	CONSTRAINT musics_pk PRIMARY KEY (music_id),
-	CONSTRAINT musics_unique UNIQUE (slug),
-	CONSTRAINT musics_artis_fk FOREIGN KEY (artis_id) REFERENCES stream.artis(artis_id) ON DELETE SET NULL
+	CONSTRAINT musics_unique UNIQUE (slug)
+);
+`
+
+var schemaArtisMusic = `
+CREATE TABLE stream.music_artis (
+	music_id uuid NULL,
+	artis_id uuid NULL,
+	CONSTRAINT music_artis_fk1 FOREIGN KEY (music_id) REFERENCES stream.music(music_id) ON DELETE CASCADE,
+	CONSTRAINT music_artis_fk2 FOREIGN KEY (artis_id) REFERENCES stream.artis(artis_id) ON DELETE CASCADE,
+	CONSTRAINT music_artis_unique1 UNIQUE (music_id, artis_id)
 );
 `
 
@@ -48,6 +43,11 @@ type Music struct {
 	Genre        pq.StringArray `db:"genres" json:"genres,omitempty" form:"genres"`
 	CreatedAt    *time.Time     `db:"created_at" json:"created_at"`
 	UpdateAt     *time.Time     `db:"updated_at" json:"updated_at"`
+}
+
+type MusicArtis struct {
+	Music_id *string `db:"music_id" json:"music_id,omitempty" form:"music_id"`
+	Artis_id *string `db:"artis_id" json:"artis_id,omitempty" form:"artis_id"`
 }
 
 type Musics []Music

@@ -10,12 +10,12 @@ import (
 
 type Config struct {
 	FormName []string
-	DirName  string
+	dirName  string
 }
 
 var ConfigDefault = Config{
 	FormName: []string{"file", "image"},
-	DirName:  "./uploads",
+	dirName:  "./uploads",
 }
 
 func configDefault(config ...Config) Config {
@@ -24,6 +24,7 @@ func configDefault(config ...Config) Config {
 	}
 
 	cfg := config[0]
+	cfg.dirName = ConfigDefault.dirName
 	return cfg
 }
 
@@ -32,6 +33,7 @@ func Upload(config ...Config) fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		form, err := c.MultipartForm()
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
@@ -41,7 +43,7 @@ func Upload(config ...Config) fiber.Handler {
 			for _, file := range files {
 				fileExt := filepath.Ext(file.Filename)
 				fileName := fmt.Sprintf("%s%s", uidds, fileExt)
-				fileLocation := fmt.Sprintf("%s/%s", cfg.DirName, fileName)
+				fileLocation := fmt.Sprintf("%s/%s", cfg.dirName, fileName)
 				if err := c.SaveFile(file, fileLocation); err != nil {
 					return err
 				}

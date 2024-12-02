@@ -1,13 +1,23 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 var schemaArtis = `
 CREATE TABLE stream.artis (
 	artis_id uuid DEFAULT gen_random_uuid() NOT NULL,
 	slug varchar(100) NOT NULL,
-	"name" varchar(100) NOT NULL,
+	first_name varchar(50) NOT NULL,
+	last_name varchar(50) NOT NULL,
+	email varchar(50) NOT NULL,
+	birth_date date NOT NULL,
+	picture varchar NOT NULL,
 	nationality varchar(50) NULL,
+	street_address varchar(50) NULL,
+	city varchar(50) NULL,
+	province varchar(50) NULL,
+	zip_code integer NULL,
 	created_at timestamp DEFAULT now() NULL,
 	updated_at timestamp NULL,
 	CONSTRAINT artis_pk PRIMARY KEY (artis_id),
@@ -16,12 +26,20 @@ CREATE TABLE stream.artis (
 `
 
 type Artis struct {
-	Artis_Id    string     `db:"artis_id" json:"artis_id,omitempty" form:"artis_id"`
-	Slug        string     `db:"slug" json:"slug,omitempty" form:"slug"`
-	Name        string     `db:"name" json:"name" form:"name"`
-	Nationality string     `db:"nationality" json:"nationality" form:"nationality"`
-	CreatedAt   *time.Time `db:"created_at" json:"created_at"`
-	UpdateAt    *time.Time `db:"updated_at" json:"updated_at"`
+	Artis_Id      string     `db:"artis_id" json:"artis_id,omitempty" form:"artis_id"`
+	FirstName     string     `db:"first_name" json:"first_name" form:"first_name"`
+	LastName      string     `db:"last_name" json:"last_name" form:"last_name"`
+	Email         string     `db:"email" json:"email" form:"email"`
+	BirthDate     *string    `db:"birth_date" json:"birth_date" form:"birth_date"`
+	Picture       string     `db:"picture" json:"picture" form:"picture"`
+	Slug          string     `db:"slug" json:"slug,omitempty" form:"slug"`
+	Nationality   string     `db:"nationality" json:"nationality" form:"nationality"`
+	StreetAddress string     `db:"street_address" json:"street_address" form:"street_address"`
+	City          string     `db:"city" json:"city" form:"city"`
+	Province      string     `db:"province" json:"province" form:"province"`
+	ZipCode       int        `db:"zip_code" json:"zip_code" form:"zip_code"`
+	CreatedAt     *time.Time `db:"created_at" json:"created_at"`
+	UpdateAt      *time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type Arties []Artis

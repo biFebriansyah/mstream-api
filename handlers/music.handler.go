@@ -6,7 +6,6 @@ import (
 	"biFebriansyah/gostream/repositories"
 	"biFebriansyah/gostream/utils"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -36,6 +35,8 @@ func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 			data.Cover = url
 			clean.Add(file)
 		}
+	} else {
+		return fiber.ErrBadGateway
 	}
 
 	data.Slug = utils.Slug(data.Title)
@@ -49,6 +50,8 @@ func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 		if err := music.amqp.NewPublisher("ffmpeg", message); err != nil {
 			return fiber.ErrBadGateway
 		}
+	} else {
+		return fiber.ErrBadGateway
 	}
 
 	go clean.Run()
@@ -127,7 +130,6 @@ func (music *musicHandler) FetchAll(ctx *fiber.Ctx) error {
 		if err.Error() == config.NotFound {
 			return fiber.ErrNotFound
 		}
-		log.Println(err)
 		return fiber.ErrBadGateway
 	}
 

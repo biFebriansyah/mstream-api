@@ -6,6 +6,7 @@ import (
 	"biFebriansyah/gostream/repositories"
 	"biFebriansyah/gostream/utils"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,12 +23,22 @@ func NewartisHandler(repo *repositories.ArtiRepo) *artisHandler {
 
 func (artis *artisHandler) Create(ctx *fiber.Ctx) error {
 	data := new(models.Artis)
+	clean := utils.Cleaning()
+	upload := utils.NewGIO()
 
 	if err := ctx.BodyParser(data); err != nil {
+		log.Println(err)
 		return fiber.ErrBadGateway
 	}
 
-	data.Slug = utils.Slug(data.Name)
+	if file := ctx.Locals("picture").(string); file != "" {
+		if url, err := upload.UploadData(file); err == nil {
+			data.Picture = url
+			clean.Add(file)
+		}
+	}
+
+	data.Slug = utils.Slug(data.FirstName + data.LastName)
 	result, err := artis.repo.InsertData(data)
 	if err != nil {
 		return fiber.ErrBadGateway
@@ -43,8 +54,8 @@ func (artis *artisHandler) Update(ctx *fiber.Ctx) error {
 		return fiber.ErrBadGateway
 	}
 
-	if data.Name != "" {
-		data.Slug = utils.Slug(data.Name)
+	if data.FirstName != "" || data.LastName != "" {
+		data.Slug = utils.Slug(data.FirstName + data.LastName)
 	}
 
 	result, err := artis.repo.UpdateData(data)

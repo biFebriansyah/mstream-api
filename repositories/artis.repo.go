@@ -19,7 +19,7 @@ func NewArtis(db *sqlx.DB) *ArtiRepo {
 }
 
 func (repo *ArtiRepo) InsertData(data *models.Artis) (int64, error) {
-	q := `INSERT INTO stream.artis ("name", slug, nationality) VALUES(:name, :slug, :nationality)`
+	q := `INSERT INTO stream.artis (slug, first_name, last_name, email, birth_date, picture, nationality, street_address, city, province, zip_code) VALUES(:slug, :first_name, :last_name, :email, :birth_date, :picture, :nationality, :street_address, :city, :province, :zip_code)`
 
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {
@@ -33,9 +33,17 @@ func (repo *ArtiRepo) InsertData(data *models.Artis) (int64, error) {
 func (repo *ArtiRepo) UpdateData(data *models.Artis) (int64, error) {
 	q := `
 	UPDATE stream.artis SET 
-		name=COALESCE(NULLIF(:name, ''), name),
+		first_name=COALESCE(NULLIF(:first_name, ''), first_name),
+		last_name=COALESCE(NULLIF(:last_name, ''), last_name),
 		slug=COALESCE(NULLIF(:slug, ''), slug),
+		email=COALESCE(NULLIF(:email, ''), email),
+		birth_date=COALESCE(NULLIF(:birth_date, ''), birth_date),
+		picture=COALESCE(NULLIF(:picture, ''), picture),
 		nationality=COALESCE(NULLIF(:nationality, ''), nationality),
+		street_address=COALESCE(NULLIF(:street_address, ''), street_address),
+		city=COALESCE(NULLIF(:city, ''), city),
+		province=COALESCE(NULLIF(:province, ''), province),
+		zip_code=COALESCE(NULLIF(:zip_code, 0), zip_code),
 		updated_at=now()
 	WHERE artis_id = :artis_id;
 	`
@@ -55,8 +63,7 @@ func (repo *ArtiRepo) DeleteData(uid string) (int64, error) {
 }
 
 func (repo *ArtiRepo) GetDataById(uid string) (*models.Artis, error) {
-	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
-	FROM stream.artis WHERE artis_id = $1`
+	q := `SELECT artis_id, slug, first_name, last_name, email, birth_date, picture, nationality, street_address, city, province, zip_code, created_at, updated_at FROM stream.artis WHERE artis_id = $1`
 
 	var data models.Artis
 	if err := repo.db.Get(&data, q, uid); err != nil {
@@ -70,8 +77,7 @@ func (repo *ArtiRepo) GetDataById(uid string) (*models.Artis, error) {
 }
 
 func (repo *ArtiRepo) GetDataBySlug(slug string) (*models.Artis, error) {
-	q := `SELECT artis_id, "name", slug, nationality, created_at, updated_at
-	FROM stream.artis WHERE slug = $1`
+	q := `SELECT artis_id, slug, first_name, last_name, email, birth_date, picture, nationality, street_address, city, province, zip_code, created_at, updated_at FROM stream.artis WHERE slug = $1`
 
 	var data models.Artis
 	if err := repo.db.Get(&data, q, slug); err != nil {
@@ -121,8 +127,8 @@ func (repo *ArtiRepo) GetAllData(params *config.Pagination) (*config.ResultWarp,
 		metaResult.Prev = params.Page - 1
 	}
 
-	q := fmt.Sprintf(`SELECT artis_id, "name", slug, nationality, created_at, updated_at
-	FROM stream.artis WHERE true %s ORDER BY created_at DESC %s `, filterQuery, metaQuery)
+	q := fmt.Sprintf(`SELECT artis_id, slug, first_name, last_name, email, birth_date, picture, nationality, street_address, city, province, zip_code, created_at, updated_at FROM stream.artis WHERE true %s ORDER BY created_at DESC %s `, filterQuery, metaQuery)
+
 	if err := repo.db.Select(data, repo.db.Rebind(q)); err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, errors.New(config.NotFound)

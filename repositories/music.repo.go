@@ -22,10 +22,10 @@ func NewMusic(db *sqlx.DB) *MusicRepo {
 func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
 	var uid string
 	tx := repo.db.MustBegin()
-	stm, _ := tx.Preparex(`INSERT INTO stream.music (artis_id, slug, title, release_date, cover, source_url)
-	VALUES($1, $2, $3, $4, $5, $6) returning music_id`)
+	stm, _ := tx.Preparex(`INSERT INTO stream.music (slug, title, release_date, cover, source_url)
+	VALUES($1, $2, $3, $4, $5) returning music_id`)
 
-	err := stm.Get(&uid, data.Artis_id, data.Slug, data.Title, data.Release_date, data.Cover, data.Source_url)
+	err := stm.Get(&uid, data.Slug, data.Title, data.Release_date, data.Cover, data.Source_url)
 	if err != nil {
 		if errrb := tx.Rollback(); errrb != nil {
 			return uid, errrb
@@ -33,10 +33,19 @@ func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
 		return uid, err
 	}
 
-	q := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_musics_unique DO NOTHING;`
+	q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
+	artisMusicData := &models.MusicArtis{Music_id: &uid, Artis_id: data.Artis_id}
+	_, err = tx.NamedExec(q1, artisMusicData)
+	if err != nil {
+		if errrb := tx.Rollback(); errrb != nil {
+			return uid, errrb
+		}
+	}
+
+	q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
 	for _, v := range data.Genre {
 		genreMusicData := &models.GenreMusic{Music_id: &uid, Genre_id: &v}
-		_, err := tx.NamedExec(q, genreMusicData)
+		_, err := tx.NamedExec(q2, genreMusicData)
 		if err != nil {
 			if errrb := tx.Rollback(); errrb != nil {
 				return uid, errrb
@@ -62,7 +71,6 @@ func (repo *MusicRepo) UpdateData(data *models.Music) (int64, error) {
 	tx := repo.db.MustBegin()
 	q1 := `
 	UPDATE stream.music SET 
-		artis_id=COALESCE(NULLIF(:artis_id, artis_id), artis_id),
 		slug=COALESCE(NULLIF(:slug, ''), slug),
 		title=COALESCE(NULLIF(:title, ''), title),
 		release_date=COALESCE(NULLIF(:release_date, release_date), release_date),
