@@ -34,7 +34,6 @@ CREATE TABLE stream.music_artis (
 type Music struct {
 	Music_id     string         `db:"music_id" json:"music_id,omitempty" form:"music_id"`
 	Artis_id     *string        `db:"artis_id" json:"artis_id" form:"artis_id"`
-	Artis        string         `db:"artis" json:"artis,omitempty" form:"artis"`
 	Title        string         `db:"title" json:"title" form:"title"`
 	Slug         string         `db:"slug" json:"slug" form:"slug"`
 	Release_date *string        `db:"release_date" json:"release_date" form:"release_date"`
@@ -45,9 +44,17 @@ type Music struct {
 	UpdateAt     *time.Time     `db:"updated_at" json:"updated_at"`
 }
 
-type MusicArtis struct {
-	Music_id *string `db:"music_id" json:"music_id,omitempty" form:"music_id"`
-	Artis_id *string `db:"artis_id" json:"artis_id,omitempty" form:"artis_id"`
-}
-
 type Musics []Music
+
+type MusicData struct {
+	Music_id     string       `db:"music_id" json:"music_id,omitempty" form:"music_id"`
+	Title        string       `db:"title" json:"title" form:"title"`
+	Slug         string       `db:"slug" json:"slug" form:"slug"`
+	Release_date string       `db:"release_date" json:"release_date" form:"release_date"`
+	Cover        string       `db:"cover" json:"cover" form:"cover"`
+	Source_url   string       `db:"source_url" json:"source_url" form:"source_url"`
+	MusicArtis   MusicArtis   `db:"music_artis" json:"music_artis,omitempty" form:"music_artis"`
+	MusicGenre   []GenreMusic `db:"music_genre" json:"music_genre,omitempty" form:"music_genre"`
+	CreatedAt    *time.Time   `db:"created_at" json:"created_at"`
+	UpdateAt     *time.Time   `db:"updated_at" json:"updated_at"`
+}

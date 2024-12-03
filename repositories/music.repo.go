@@ -3,9 +3,9 @@ package repositories
 import (
 	"biFebriansyah/gostream/config"
 	"biFebriansyah/gostream/models"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/jmoiron/sqlx"
@@ -114,73 +114,159 @@ func (repo *MusicRepo) DeleteData(uid string) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (repo *MusicRepo) GetDataById(uid string) (*models.Music, error) {
-	q2 := `
-	select 
+func (repo *MusicRepo) GetDataById(uid string) (*models.MusicData, error) {
+	q1 := `
+	SELECT 
 		m.music_id,
 		m.title,
 		m.slug,
-		a."name" as artis,
+		(SELECT 
+			DISTINCT JSONB_BUILD_OBJECT(
+				'artis_id', a.artis_id,
+				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
+			)
+			FROM stream.artis a
+			JOIN stream.music_artis ma ON a.artis_id = ma.artis_id
+			WHERE ma.music_id = m.music_id 
+		) AS music_artis,
+		(SELECT 
+			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+				'genre_id', g.genre_id,
+				'genre_name', g.genre_name
+			))
+			FROM stream.genre g
+			JOIN stream.music_genre mg ON g.genre_id = mg.genre_id
+			WHERE mg.music_id = m.music_id 
+		) AS music_genre,
 		m.release_date,
 		m.cover,
 		m.source_url,
-		ARRAY_AGG(gn.genre_name) AS genres,
 		m.created_at,
 		m.updated_at
-	from stream.music m
-	join stream.artis a on m.artis_id = a.artis_id
-	join stream.music_genre mg on m.music_id = mg.music_id
-	join stream.genre gn on mg.genre_id = gn.genre_id
-	where m.music_id = $1
-	group by m.music_id, a."name"
-	`
+	FROM stream.music m
+	WHERE m.music_id = $1
+	GROUP BY m.music_id`
 
-	var data = new(models.Music)
-	if err := repo.db.Get(data, q2, uid); err != nil {
-		log.Println(err)
-		if err.Error() == "sql: no rows in result set" {
-			return nil, errors.New(config.NotFound)
+	var data = new(models.MusicData)
+	var musicGenreJSON, musicArtisJSON []byte
+	if rows, err := repo.db.Queryx(q1, uid); err == nil {
+		for rows.Next() {
+			err := rows.Scan(
+				&data.Music_id,
+				&data.Title,
+				&data.Slug,
+				&musicArtisJSON,
+				&musicGenreJSON,
+				&data.Release_date,
+				&data.Cover,
+				&data.Source_url,
+				&data.CreatedAt,
+				&data.UpdateAt,
+			)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+
+			if len(musicArtisJSON) > 0 {
+				if err := json.Unmarshal(musicArtisJSON, &data.MusicArtis); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal music_artis: %w", err)
+				}
+			}
+
+			if len(musicGenreJSON) > 0 {
+				if err := json.Unmarshal(musicGenreJSON, &data.MusicGenre); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal music_genre: %w", err)
+				}
+			}
 		}
-		return nil, err
 	}
+
+	// if err := repo.db.Get(data, q1, uid); err != nil {
+	// 	log.Println(err)
+	// 	if err.Error() == "sql: no rows in result set" {
+	// 		return nil, errors.New(config.NotFound)
+	// 	}
+	// 	return nil, err
+	// }
 
 	return data, nil
 }
 
-func (repo *MusicRepo) GetDataBySlug(slug string) (*models.Music, error) {
-	q := `
-	select 
+func (repo *MusicRepo) GetDataBySlug(slug string) (*models.MusicData, error) {
+	q1 := `
+	SELECT 
 		m.music_id,
 		m.title,
-		m.,
-		a."name" as artis,
+		m.slug,
+		(SELECT 
+			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+				'artis_id', a.artis_id,
+				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
+			))
+			FROM stream.artis a
+			JOIN stream.music_artis ma ON a.artis_id = ma.artis_id
+			WHERE ma.music_id = m.music_id 
+		) AS music_artis,
+		(SELECT 
+			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+				'genre_id', g.genre_id,
+				'genre_name', g.genre_name
+			))
+			FROM stream.genre g
+			JOIN stream.music_genre mg ON g.genre_id = mg.genre_id
+			WHERE mg.music_id = m.music_id 
+		) AS music_genre,
 		m.release_date,
 		m.cover,
 		m.source_url,
-		ARRAY_AGG(gn.genre_name) AS genres,
 		m.created_at,
 		m.updated_at
-	from stream.music m
-	join stream.artis a on m.artis_id = a.artis_id
-	join stream.music_genre mg on m.music_id = mg.music_id
-	join stream.genre gn on mg.genre_id = gn.genre_id
-	where m.slug = $1
-	group by m.music_id, a."name"
+	FROM stream.music m
+	WHERE m.slug = $1
+	GROUP BY m.music_id
 	`
 
-	var data = new(models.Music)
-	if err := repo.db.Get(data, q, slug); err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, errors.New(config.NotFound)
+	var data = new(models.MusicData)
+	var musicGenreJSON, musicArtisJSON []byte
+	if rows, err := repo.db.Queryx(q1, slug); err == nil {
+		for rows.Next() {
+			err := rows.Scan(
+				&data.Music_id,
+				&data.Title,
+				&data.Slug,
+				&musicArtisJSON,
+				&musicGenreJSON,
+				&data.Release_date,
+				&data.Cover,
+				&data.Source_url,
+				&data.CreatedAt,
+				&data.UpdateAt,
+			)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+
+			if len(musicArtisJSON) > 0 {
+				if err := json.Unmarshal(musicArtisJSON, &data.MusicArtis); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal music_artis: %w", err)
+				}
+			}
+
+			if len(musicGenreJSON) > 0 {
+				if err := json.Unmarshal(musicGenreJSON, &data.MusicGenre); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal music_genre: %w", err)
+				}
+			}
 		}
-		return nil, err
 	}
 
 	return data, nil
 }
 
 func (repo *MusicRepo) GetAllData(params *config.Pagination) (*config.ResultWarp, error) {
-	var data = new(models.Musics)
+	var datas = new([]models.MusicData)
 	var metaResult = new(config.Meta)
 	var filterQuery string
 	var metaQuery string
@@ -220,14 +306,86 @@ func (repo *MusicRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 		metaResult.Prev = params.Page - 1
 	}
 
-	q := fmt.Sprintf(`SELECT music_id, artis_id, slug, title, release_date, cover, source_url, created_at, updated_at
-	FROM stream.music WHERE true %s ORDER BY created_at DESC %s `, filterQuery, metaQuery)
-	if err := repo.db.Select(data, repo.db.Rebind(q)); err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, errors.New(config.NotFound)
+	// q := fmt.Sprintf(`SELECT music_id, slug, title, release_date, cover, source_url, created_at, updated_at
+	// FROM stream.music WHERE true %s ORDER BY created_at DESC %s `, filterQuery, metaQuery)
+
+	q := fmt.Sprintf(`
+	SELECT 
+		m.music_id,
+		m.title,
+		m.slug,
+		(SELECT 
+			DISTINCT JSONB_BUILD_OBJECT(
+				'artis_id', a.artis_id,
+				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
+			)
+			FROM stream.artis a
+			JOIN stream.music_artis ma ON a.artis_id = ma.artis_id
+			WHERE ma.music_id = m.music_id 
+		) AS music_artis,
+		(SELECT 
+			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+				'genre_id', g.genre_id,
+				'genre_name', g.genre_name
+			))
+			FROM stream.genre g
+			JOIN stream.music_genre mg ON g.genre_id = mg.genre_id
+			WHERE mg.music_id = m.music_id 
+		) AS music_genre,
+		m.release_date,
+		m.cover,
+		m.source_url,
+		m.created_at,
+		m.updated_at
+	FROM stream.music m
+	WHERE true %s
+	GROUP BY m.music_id
+	ORDER BY created_at DESC %s `, filterQuery, metaQuery)
+
+	if rows, err := repo.db.Queryx(q); err == nil {
+		for rows.Next() {
+			var data = new(models.MusicData)
+			var musicGenreJSON, musicArtisJSON []byte
+			err := rows.Scan(
+				&data.Music_id,
+				&data.Title,
+				&data.Slug,
+				&musicArtisJSON,
+				&musicGenreJSON,
+				&data.Release_date,
+				&data.Cover,
+				&data.Source_url,
+				&data.CreatedAt,
+				&data.UpdateAt,
+			)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+
+			if len(musicArtisJSON) > 0 {
+				if err := json.Unmarshal(musicArtisJSON, &data.MusicArtis); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal music_artis: %w", err)
+				}
+			}
+
+			if len(musicGenreJSON) > 0 {
+				if err := json.Unmarshal(musicGenreJSON, &data.MusicGenre); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal music_genre: %w", err)
+				}
+			}
+
+			*datas = append(*datas, *data)
 		}
-		return nil, err
 	}
 
-	return &config.ResultWarp{Data: data, Meta: metaResult}, nil
+	// if err := repo.db.Select(data, repo.db.Rebind(q)); err != nil {
+	// 	fmt.Println(err)
+	// 	if err.Error() == "sql: no rows in result set" {
+	// 		return nil, errors.New(config.NotFound)
+	// 	}
+	// 	return nil, err
+	// }
+
+	return &config.ResultWarp{Data: datas, Meta: metaResult}, nil
 }
