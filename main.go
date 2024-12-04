@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+
 	database := utils.NewDatabase()
 	amqpConnection := utils.NewAmqpConn()
 	routers := routers.New(database.DB, amqpConnection)

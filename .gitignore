@@ -2,3 +2,4 @@ uploads/
 output/
 index.html
 .env
+.env.*

@@ -19,7 +19,7 @@ func NewMusic(db *sqlx.DB) *MusicRepo {
 	return &MusicRepo{db}
 }
 
-func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
+func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
 	var uid string
 	tx := repo.db.MustBegin()
 	stm, _ := tx.Preparex(`INSERT INTO stream.music (slug, title, release_date, cover, source_url)
@@ -34,7 +34,7 @@ func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
 	}
 
 	q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
-	artisMusicData := &models.MusicArtis{Music_id: &uid, Artis_id: data.Artis_id}
+	artisMusicData := &models.MusicArtis{Music_id: &uid, Artis_id: data.MusicArtis.Artis_id}
 	_, err = tx.NamedExec(q1, artisMusicData)
 	if err != nil {
 		if errrb := tx.Rollback(); errrb != nil {
@@ -43,8 +43,8 @@ func (repo *MusicRepo) InsertData(data *models.Music) (string, error) {
 	}
 
 	q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
-	for _, v := range data.Genre {
-		genreMusicData := &models.GenreMusic{Music_id: &uid, Genre_id: &v}
+	for _, v := range data.MusicGenre {
+		genreMusicData := &models.GenreMusic{Music_id: &uid, Genre_id: v.Genre_id}
 		_, err := tx.NamedExec(q2, genreMusicData)
 		if err != nil {
 			if errrb := tx.Rollback(); errrb != nil {
@@ -183,7 +183,6 @@ func (repo *MusicRepo) GetDataById(uid string) (*models.MusicData, error) {
 	}
 
 	// if err := repo.db.Get(data, q1, uid); err != nil {
-	// 	log.Println(err)
 	// 	if err.Error() == "sql: no rows in result set" {
 	// 		return nil, errors.New(config.NotFound)
 	// 	}
@@ -200,10 +199,10 @@ func (repo *MusicRepo) GetDataBySlug(slug string) (*models.MusicData, error) {
 		m.title,
 		m.slug,
 		(SELECT 
-			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+			DISTINCT JSONB_BUILD_OBJECT(
 				'artis_id', a.artis_id,
 				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
-			))
+			)
 			FROM stream.artis a
 			JOIN stream.music_artis ma ON a.artis_id = ma.artis_id
 			WHERE ma.music_id = m.music_id 

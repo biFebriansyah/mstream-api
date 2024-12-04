@@ -31,7 +31,7 @@ func NewDatabase() *SqlxDB {
 
 		db, err := sqlx.Connect("postgres", config)
 		if err != nil {
-			log.Fatal("database fail to connect")
+			log.Fatalf("database fail to connect with config %s", config)
 		}
 
 		db.SetConnMaxIdleTime(10)

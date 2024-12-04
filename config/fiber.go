@@ -2,8 +2,10 @@ package config
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 type response struct {
@@ -23,6 +25,19 @@ var FiberConfig fiber.Config = fiber.Config{
 	Prefork:      true,
 	ServerHeader: "Anonymouse",
 	ErrorHandler: errorHandler,
+}
+
+var FiberCors cors.Config = cors.Config{
+	AllowOrigins: "http://localhost:3001",
+	AllowHeaders: "*",
+	AllowMethods: strings.Join([]string{
+		fiber.MethodGet,
+		fiber.MethodPost,
+		fiber.MethodHead,
+		fiber.MethodPut,
+		fiber.MethodDelete,
+		fiber.MethodPatch,
+	}, ","),
 }
 
 func errorHandler(ctx *fiber.Ctx, err error) error {

@@ -2,7 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/wagslane/go-rabbitmq"
 )
@@ -41,12 +43,13 @@ func routeMessage(body []byte) error {
 }
 
 func NewAmqpConn() *AmqpConfig {
+	config := fmt.Sprintf("amqp://guest:guest@%s", os.Getenv("AMQP_HOST"))
 	conn, err := rabbitmq.NewConn(
-		"amqp://guest:guest@localhost",
+		config,
 		rabbitmq.WithConnectionOptionsLogging,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("amqp failed to connect with config %s", config)
 	}
 
 	return &AmqpConfig{

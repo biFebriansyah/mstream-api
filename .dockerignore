@@ -1,0 +1,5 @@
+uploads/
+output/
+*.html
+*.mp3
+.env

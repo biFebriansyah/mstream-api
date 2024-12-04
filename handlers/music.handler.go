@@ -22,7 +22,7 @@ func NewMusicHandler(repo *repositories.MusicRepo, amqp *utils.AmqpConfig) *musi
 }
 
 func (music *musicHandler) Create(ctx *fiber.Ctx) error {
-	data := new(models.Music)
+	data := new(models.MusicData)
 	clean := utils.Cleaning()
 	upload := utils.NewGIO()
 
