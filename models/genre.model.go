@@ -5,10 +5,11 @@ import "time"
 var schemaGenre = `
 CREATE TABLE stream.genre (
 	genre_id uuid DEFAULT gen_random_uuid() NOT NULL,
-	genre_name varchar NOT NULL,
+	name varchar NOT NULL,
 	slug varchar(100) NOT NULL,
 	created_at timestamp DEFAULT NOW() NULL,
 	updated_at timestamp NULL,
+	deleted_at timestamp NULL,
 	CONSTRAINT genre_pk PRIMARY KEY (genre_id),
 	CONSTRAINT genre_unique UNIQUE (slug)
 );
@@ -23,6 +24,7 @@ CREATE TABLE stream.music_genre (
 	CONSTRAINT music_genre_unique UNIQUE (music_id, genre_id)
 );
 `
+var indexMusicGenres = `CREATE INDEX idx_music_genre ON stream.music_genre(music_id)`
 
 type Genre struct {
 	Genre_id   string     `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
@@ -30,6 +32,7 @@ type Genre struct {
 	Slug       string     `db:"slug" json:"slug" form:"slug"`
 	CreatedAt  *time.Time `db:"created_at" json:"created_at"`
 	UpdateAt   *time.Time `db:"updated_at" json:"updated_at"`
+	DeletedAt  *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 type GenreMusic struct {

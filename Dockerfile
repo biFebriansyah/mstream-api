@@ -17,6 +17,7 @@ RUN mkdir -p ./uploads
 RUN mkdir -p ./output/encode
 RUN mkdir -p ./output/segment
 
+COPY --from=build /app/.env .
 COPY --from=build /app/goapp .
 
 ENV PATH="/app:${PATH}"
@@ -25,5 +26,5 @@ USER 405
 
 EXPOSE 8081
 
-ENTRYPOINT ["/app/goapp"]
+CMD [ "goapp" ]
 

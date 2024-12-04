@@ -121,7 +121,7 @@ func (repo *MusicRepo) GetDataById(uid string) (*models.MusicData, error) {
 		m.title,
 		m.slug,
 		(SELECT 
-			DISTINCT JSONB_BUILD_OBJECT(
+			JSONB_BUILD_OBJECT(
 				'artis_id', a.artis_id,
 				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
 			)
@@ -130,7 +130,7 @@ func (repo *MusicRepo) GetDataById(uid string) (*models.MusicData, error) {
 			WHERE ma.music_id = m.music_id 
 		) AS music_artis,
 		(SELECT 
-			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+			JSONB_AGG(JSONB_BUILD_OBJECT(
 				'genre_id', g.genre_id,
 				'genre_name', g.genre_name
 			))
@@ -199,7 +199,7 @@ func (repo *MusicRepo) GetDataBySlug(slug string) (*models.MusicData, error) {
 		m.title,
 		m.slug,
 		(SELECT 
-			DISTINCT JSONB_BUILD_OBJECT(
+			JSONB_BUILD_OBJECT(
 				'artis_id', a.artis_id,
 				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
 			)
@@ -208,7 +208,7 @@ func (repo *MusicRepo) GetDataBySlug(slug string) (*models.MusicData, error) {
 			WHERE ma.music_id = m.music_id 
 		) AS music_artis,
 		(SELECT 
-			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+			JSONB_AGG(JSONB_BUILD_OBJECT(
 				'genre_id', g.genre_id,
 				'genre_name', g.genre_name
 			))
@@ -314,7 +314,7 @@ func (repo *MusicRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 		m.title,
 		m.slug,
 		(SELECT 
-			DISTINCT JSONB_BUILD_OBJECT(
+			JSONB_BUILD_OBJECT(
 				'artis_id', a.artis_id,
 				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
 			)
@@ -323,7 +323,7 @@ func (repo *MusicRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 			WHERE ma.music_id = m.music_id 
 		) AS music_artis,
 		(SELECT 
-			JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+			JSONB_AGG(JSONB_BUILD_OBJECT(
 				'genre_id', g.genre_id,
 				'genre_name', g.genre_name
 			))

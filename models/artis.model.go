@@ -11,7 +11,7 @@ CREATE TABLE stream.artis (
 	first_name varchar(50) NOT NULL,
 	last_name varchar(50) NOT NULL,
 	email varchar(50) NOT NULL,
-	birth_date date NOT NULL,
+	birth_date date NULL,
 	picture varchar NOT NULL,
 	nationality varchar(50) NULL,
 	street_address varchar(50) NULL,
@@ -20,9 +20,25 @@ CREATE TABLE stream.artis (
 	zip_code integer NULL,
 	created_at timestamp DEFAULT now() NULL,
 	updated_at timestamp NULL,
+	deleted_at timestamp NULL,
 	CONSTRAINT artis_pk PRIMARY KEY (artis_id),
 	CONSTRAINT artis_unique UNIQUE (slug)
 );
+`
+
+var schemaArtisMusic = `
+CREATE TABLE stream.music_artis (
+	music_id uuid NULL,
+	artis_id uuid NULL,
+	CONSTRAINT music_artis_fk1 FOREIGN KEY (music_id) REFERENCES stream.music(music_id) ON DELETE CASCADE,
+	CONSTRAINT music_artis_fk2 FOREIGN KEY (artis_id) REFERENCES stream.artis(artis_id) ON DELETE CASCADE,
+	CONSTRAINT music_artis_unique1 UNIQUE (music_id, artis_id)
+);
+`
+
+var indexMusicArtis = `
+CREATE INDEX idx_music_artis ON stream.music_artis(music_id);
+CREATE UNIQUE INDEX idx_artis ON stream.artis(artis_id, slug);
 `
 
 type Artis struct {
@@ -40,6 +56,7 @@ type Artis struct {
 	ZipCode       int        `db:"zip_code" json:"zip_code" form:"zip_code"`
 	CreatedAt     *time.Time `db:"created_at" json:"created_at"`
 	UpdateAt      *time.Time `db:"updated_at" json:"updated_at"`
+	DeletedAt     *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 type MusicArtis struct {
