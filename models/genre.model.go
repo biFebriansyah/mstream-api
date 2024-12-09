@@ -27,18 +27,18 @@ CREATE TABLE stream.music_genre (
 var indexMusicGenres = `CREATE INDEX idx_music_genre ON stream.music_genre(music_id)`
 
 type Genre struct {
-	Genre_id   string     `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
-	Genre_name string     `db:"genre_name" json:"genre_name" form:"genre_name"`
-	Slug       string     `db:"slug" json:"slug" form:"slug"`
-	CreatedAt  *time.Time `db:"created_at" json:"created_at"`
-	UpdateAt   *time.Time `db:"updated_at" json:"updated_at"`
-	DeletedAt  *time.Time `db:"deleted_at" json:"deleted_at"`
+	Genre_id  string     `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
+	Name      string     `db:"name" json:"name" form:"name"`
+	Slug      string     `db:"slug" json:"slug" form:"slug"`
+	CreatedAt *time.Time `db:"created_at" json:"created_at"`
+	UpdateAt  *time.Time `db:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 type GenreMusic struct {
 	Music_id  *string `db:"music_id" json:"music_id,omitempty" form:"music_id"`
 	Genre_id  *string `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
-	GenreName string  `json:"genre_name"`
+	GenreName string  `json:"name"`
 }
 
 type Genres []Genre

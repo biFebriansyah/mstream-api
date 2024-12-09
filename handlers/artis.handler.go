@@ -6,7 +6,6 @@ import (
 	"biFebriansyah/gostream/repositories"
 	"biFebriansyah/gostream/utils"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +26,6 @@ func (artis *artisHandler) Create(ctx *fiber.Ctx) error {
 	upload := utils.NewGIO()
 
 	if err := ctx.BodyParser(data); err != nil {
-		log.Println(err)
 		return fiber.ErrBadGateway
 	}
 

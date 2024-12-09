@@ -19,7 +19,7 @@ func NewGenre(db *sqlx.DB) *GenreRepo {
 }
 
 func (repo *GenreRepo) InsertData(data *models.Genre) (int64, error) {
-	q := `INSERT INTO stream.genre (genre_name, slug) VALUES(:genre_name, :slug)`
+	q := `INSERT INTO stream.genre (name, slug) VALUES(:name, :slug)`
 
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {
@@ -33,7 +33,7 @@ func (repo *GenreRepo) InsertData(data *models.Genre) (int64, error) {
 func (repo *GenreRepo) UpdateData(data *models.Genre) (int64, error) {
 	q := `
 	UPDATE stream.genre SET 
-		genre_name=COALESCE(NULLIF(:genre_name, ''), genre_name),
+		name=COALESCE(NULLIF(:name, ''), name),
 		slug=COALESCE(NULLIF(:slug, ''), slug),
 		updated_at=now()
 	WHERE genre_id = :genre_id;
@@ -54,7 +54,7 @@ func (repo *GenreRepo) DeleteData(uid string) (int64, error) {
 }
 
 func (repo *GenreRepo) GetDataById(uid string) (*models.Genre, error) {
-	q := `SELECT genre_id, genre_name, slug, created_at, updated_at
+	q := `SELECT genre_id, name, slug, created_at, updated_at
 	FROM stream.genre WHERE genre_id = $1`
 
 	var data = new(models.Genre)
@@ -69,7 +69,7 @@ func (repo *GenreRepo) GetDataById(uid string) (*models.Genre, error) {
 }
 
 func (repo *GenreRepo) GetDataBySlug(slug string) (*models.Genre, error) {
-	q := `SELECT genre_id, genre_name, slug, created_at, updated_at
+	q := `SELECT genre_id, name, slug, created_at, updated_at
 	FROM stream.genre WHERE slug = $1`
 
 	var data = new(models.Genre)
@@ -91,7 +91,7 @@ func (repo *GenreRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 	// var orderQuery string
 
 	filterConditions := []config.FilterParams{
-		{Param: params.Name, Column: "genre_name"},
+		{Param: params.Name, Column: "name"},
 	}
 
 	for _, v := range filterConditions {
@@ -120,7 +120,7 @@ func (repo *GenreRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 		metaResult.Prev = params.Page - 1
 	}
 
-	q := fmt.Sprintf(`SELECT genre_id, genre_name, slug, created_at, updated_at
+	q := fmt.Sprintf(`SELECT genre_id, name, slug, created_at, updated_at
 	FROM stream.genre WHERE true %s ORDER BY created_at DESC %s `, filterQuery, metaQuery)
 	if err := repo.db.Select(data, repo.db.Rebind(q)); err != nil {
 		if err.Error() == "sql: no rows in result set" {

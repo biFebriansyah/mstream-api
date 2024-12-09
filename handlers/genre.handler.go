@@ -28,7 +28,7 @@ func (genre *genreHandler) Create(ctx *fiber.Ctx) error {
 		return fiber.ErrBadGateway
 	}
 
-	data.Slug = utils.Slug(data.Genre_name)
+	data.Slug = utils.Slug(data.Name)
 	result, err := genre.repo.InsertData(data)
 	if err != nil {
 		return fiber.ErrBadGateway
@@ -44,8 +44,8 @@ func (genre *genreHandler) Update(ctx *fiber.Ctx) error {
 		return fiber.ErrBadGateway
 	}
 
-	if data.Genre_name != "" {
-		data.Slug = utils.Slug(data.Genre_name)
+	if data.Name != "" {
+		data.Slug = utils.Slug(data.Name)
 	}
 
 	result, err := genre.repo.UpdateData(data)

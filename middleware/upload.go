@@ -40,6 +40,7 @@ func Upload(config ...Config) fiber.Handler {
 		for _, v := range cfg.FormName {
 			uidds := uuid.New().String()[:8]
 			files := form.File[v]
+			fmt.Println(files)
 			for _, file := range files {
 				fileExt := filepath.Ext(file.Filename)
 				fileName := fmt.Sprintf("%s%s", uidds, fileExt)
