@@ -1,0 +1,1 @@
+CREATE INDEX idx_music_genre ON stream.music_genre(music_id)

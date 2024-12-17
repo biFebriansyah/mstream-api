@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX idx_music ON stream.music(slug, music_id);

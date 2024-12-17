@@ -3,3 +3,4 @@ output/
 index.html
 .env
 .env.*
+build
