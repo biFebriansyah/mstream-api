@@ -8,24 +8,33 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type MusicRepo struct {
 	db *sqlx.DB
+	tx *sqlx.Tx
 }
 
-func NewMusic(db *sqlx.DB) *MusicRepo {
-	return &MusicRepo{db}
+func NewMusic(db *sqlx.DB, tx *sqlx.Tx) *MusicRepo {
+	return &MusicRepo{db: db, tx: tx}
 }
 
 func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
-	var uid string
-	tx := repo.db.MustBegin()
-	stm, _ := tx.Preparex(`INSERT INTO stream.music (slug, title, release_date, cover, source_url)
-	VALUES($1, $2, $3, $4, $5) returning music_id`)
+	var tx *sqlx.Tx = repo.tx
+	if repo.tx == nil {
+		tx = repo.db.MustBegin()
+	}
 
-	err := stm.Get(&uid, data.Slug, data.Title, data.Release_date, data.Cover, data.Source_url)
+	var uid string = data.Music_id
+	if data.Music_id == "" {
+		uid = uuid.New().String()
+	}
+
+	qq := `INSERT INTO stream.music (music_id, slug, title, release_date, cover, source_url)
+	VALUES(:music_id, :slug, :title, :release_date, :cover, :source_url)`
+	_, err := tx.NamedExec(qq, data)
 	if err != nil {
 		if errrb := tx.Rollback(); errrb != nil {
 			return uid, errrb
@@ -91,7 +100,7 @@ func (repo *MusicRepo) UpdateData(data *models.Music) (int64, error) {
 	q2 := `UPDATE stream.music_genre SET genre_id=COALESCE(NULLIF(:genre_id, genre_id), genre_id) WHERE music_id = :music_id`
 	if len(data.Genre) > 0 {
 		for _, v := range data.Genre {
-			genreMusicData := &models.GenreMusic{Music_id: &data.Music_id, Genre_id: &v}
+			genreMusicData := &models.GenreMusic{Music_id: &data.Music_id, Genre_id: v}
 			_, err := tx.NamedExec(q2, genreMusicData)
 			if err != nil {
 				if errrb := tx.Rollback(); errrb != nil {

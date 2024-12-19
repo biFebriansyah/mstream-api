@@ -13,7 +13,7 @@ import (
 func musicRoute(app *fiber.App, db *sqlx.DB, amqp *utils.AmqpConfig) {
 	music := app.Group("/music")
 
-	repos := repositories.NewMusic(db)
+	repos := repositories.NewMusic(db, nil)
 	handler := handlers.NewMusicHandler(repos, amqp)
 
 	music.Get("/slug/:slug", handler.FetchBySlug)

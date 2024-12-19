@@ -36,7 +36,7 @@ func FFmpegExexute(uid, location string) {
 	upload := NewGIO()
 	database := NewDatabase()
 	defer database.Shutdown()
-	repos := repositories.NewMusic(database.DB)
+	repos := repositories.NewMusic(database.DB, nil)
 
 	encodeAudio := EncodedAudio(location)
 	segmentAudio := SegmentedAudio(encodeAudio)

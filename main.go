@@ -9,6 +9,11 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
+type Test struct {
+	a int
+	s string
+}
+
 func main() {
 
 	database := utils.NewDatabase()

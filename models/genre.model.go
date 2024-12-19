@@ -37,7 +37,7 @@ type Genre struct {
 
 type GenreMusic struct {
 	Music_id  *string `db:"music_id" json:"music_id,omitempty" form:"music_id"`
-	Genre_id  *string `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
+	Genre_id  string  `db:"genre_id" json:"genre_id,omitempty" form:"genre_id"`
 	GenreName string  `json:"name"`
 }
 

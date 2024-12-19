@@ -5,6 +5,7 @@ import (
 	"biFebriansyah/gostream/models"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/jmoiron/sqlx"
@@ -23,7 +24,7 @@ func (repo *GenreRepo) InsertData(data *models.Genre) (int64, error) {
 
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return 0, errors.New(config.BadData)
 	}
 

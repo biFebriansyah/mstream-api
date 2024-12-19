@@ -16,6 +16,9 @@ build:
 test:
 	go test -cover -v ./...
 
+seed:
+	go run ./seeder/*.go
+
 migrate-init:
 # make migrate-init name=mstream-genres
 	migrate create -dir ${MIGRATIONS_DIR} -ext sql $(name)
