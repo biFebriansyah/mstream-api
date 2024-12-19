@@ -14,18 +14,68 @@ import (
 
 type MusicRepo struct {
 	db *sqlx.DB
+}
+
+type InsertOption struct {
+	db *sqlx.DB
 	tx *sqlx.Tx
 }
 
-func NewMusic(db *sqlx.DB, tx *sqlx.Tx) *MusicRepo {
-	return &MusicRepo{db: db, tx: tx}
+func NewMusic(db *sqlx.DB) *MusicRepo {
+	return &MusicRepo{db}
+}
+
+func (repo *MusicRepo) InsertDataTx(data *models.MusicData, option *InsertOption) (string, error) {
+	var tx *sqlx.Tx = option.tx
+	if option.tx == nil {
+		tx = repo.db.MustBegin()
+	}
+
+	var uid string = data.Music_id
+	if data.Music_id == "" {
+		uid = uuid.New().String()
+	}
+
+	qq := `INSERT INTO stream.music (music_id, slug, title, release_date, cover, source_url)
+	VALUES(:music_id, :slug, :title, :release_date, :cover, :source_url)`
+	_, err := tx.NamedExec(qq, data)
+	if err != nil {
+		if errrb := tx.Rollback(); errrb != nil {
+			return uid, errrb
+		}
+		return uid, err
+	}
+
+	q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
+	artisMusicData := &models.MusicArtis{Music_id: &uid, Artis_id: data.MusicArtis.Artis_id}
+	_, err = tx.NamedExec(q1, artisMusicData)
+	if err != nil {
+		if errrb := tx.Rollback(); errrb != nil {
+			return uid, errrb
+		}
+	}
+
+	q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
+	for _, v := range data.MusicGenre {
+		genreMusicData := &models.GenreMusic{Music_id: &uid, Genre_id: v.Genre_id}
+		_, err := tx.NamedExec(q2, genreMusicData)
+		if err != nil {
+			if errrb := tx.Rollback(); errrb != nil {
+				return uid, errrb
+			}
+			return uid, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return uid, err
+	}
+
+	return uid, nil
 }
 
 func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
-	var tx *sqlx.Tx = repo.tx
-	if repo.tx == nil {
-		tx = repo.db.MustBegin()
-	}
+	var tx *sqlx.Tx = repo.db.MustBegin()
 
 	var uid string = data.Music_id
 	if data.Music_id == "" {

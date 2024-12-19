@@ -9,8 +9,7 @@ import (
 )
 
 func seedMusic(db *sqlx.DB) {
-	tx := db.MustBegin()
-	repos := repositories.NewMusic(db, tx)
+	repos := repositories.NewMusic(db)
 	var datas models.MusicDatas = models.MusicDatas{
 		{
 			Music_id:     "61cbea2c-5af2-4733-b313-b057e8da1b35",
