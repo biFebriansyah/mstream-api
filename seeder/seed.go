@@ -13,8 +13,7 @@ func main() {
 
 	seedGenres(database.DB)
 	seedArtis(database.DB)
-	// TODO need to fix music seed
-	// seedMusic(database.DB)
+	seedMusic(database.DB)
 
 	log.Println("seed table succsess")
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -20,8 +21,10 @@ func NewGenre(db *sqlx.DB) *GenreRepo {
 }
 
 func (repo *GenreRepo) InsertData(data *models.Genre) (int64, error) {
-	q := `INSERT INTO stream.genre (name, slug) VALUES(:name, :slug)`
-
+	if data.Genre_id == "" {
+		data.Genre_id = uuid.New().String()
+	}
+	q := `INSERT INTO stream.genre (genre_id, name, slug) VALUES(:genre_id, :name, :slug)`
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {
 		log.Println(err)

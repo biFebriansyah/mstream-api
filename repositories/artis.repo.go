@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,7 +20,11 @@ func NewArtis(db *sqlx.DB) *ArtiRepo {
 }
 
 func (repo *ArtiRepo) InsertData(data *models.Artis) (int64, error) {
-	q := `INSERT INTO stream.artis (slug, first_name, last_name, email, birth_date, picture, nationality, street_address, city, province, zip_code) VALUES(:slug, :first_name, :last_name, :email, :birth_date, :picture, :nationality, :street_address, :city, :province, :zip_code)`
+	if data.Artis_Id == "" {
+		data.Artis_Id = uuid.New().String()
+	}
+
+	q := `INSERT INTO stream.artis (artis_id, slug, first_name, last_name, email, birth_date, picture, nationality, street_address, city, province, zip_code) VALUES(:artis_id, :slug, :first_name, :last_name, :email, :birth_date, :picture, :nationality, :street_address, :city, :province, :zip_code)`
 
 	res, err := repo.db.NamedExec(q, data)
 	if err != nil {

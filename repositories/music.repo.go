@@ -25,99 +25,93 @@ func NewMusic(db *sqlx.DB) *MusicRepo {
 	return &MusicRepo{db}
 }
 
-func (repo *MusicRepo) InsertDataTx(data *models.MusicData, option *InsertOption) (string, error) {
-	var tx *sqlx.Tx = option.tx
-	if option.tx == nil {
-		tx = repo.db.MustBegin()
+func (repo *MusicRepo) InsertBatchData(data *models.MusicDatas, option *InsertOption) error {
+	var tx *sqlx.Tx = repo.db.MustBegin()
+	if option != nil && option.tx != nil {
+		tx = option.tx
 	}
 
-	var uid string = data.Music_id
-	if data.Music_id == "" {
-		uid = uuid.New().String()
-	}
-
-	qq := `INSERT INTO stream.music (music_id, slug, title, release_date, cover, source_url)
-	VALUES(:music_id, :slug, :title, :release_date, :cover, :source_url)`
-	_, err := tx.NamedExec(qq, data)
-	if err != nil {
-		if errrb := tx.Rollback(); errrb != nil {
-			return uid, errrb
+	for _, v := range *data {
+		var uid *string = &v.Music_id
+		if v.Music_id == "" {
+			v.Music_id = uuid.New().String()
 		}
-		return uid, err
-	}
 
-	q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
-	artisMusicData := &models.MusicArtis{Music_id: &uid, Artis_id: data.MusicArtis.Artis_id}
-	_, err = tx.NamedExec(q1, artisMusicData)
-	if err != nil {
-		if errrb := tx.Rollback(); errrb != nil {
-			return uid, errrb
-		}
-	}
-
-	q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
-	for _, v := range data.MusicGenre {
-		genreMusicData := &models.GenreMusic{Music_id: &uid, Genre_id: v.Genre_id}
-		_, err := tx.NamedExec(q2, genreMusicData)
-		if err != nil {
-			if errrb := tx.Rollback(); errrb != nil {
-				return uid, errrb
+		q0 := `INSERT INTO stream.music (music_id, slug, title, release_date, cover, source_url)
+		VALUES(:music_id, :slug, :title, :release_date, :cover, :source_url)`
+		if _, err := tx.NamedExec(q0, &v); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				return fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 			}
-			return uid, err
+			return fmt.Errorf("execute query fail: %w", err)
+		}
+
+		q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
+		artisMusicData := &models.MusicArtis{Music_id: *uid, Artis_id: v.MusicArtis.Artis_id}
+		if _, err := tx.NamedExec(q1, artisMusicData); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				return fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
+			}
+			return fmt.Errorf("execute query fail: %w", err)
+		}
+
+		q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
+		for _, v := range v.MusicGenre {
+			genreMusicData := &models.GenreMusic{Music_id: uid, Genre_id: v.Genre_id}
+			if _, err := tx.NamedExec(q2, genreMusicData); err != nil {
+				if rbErr := tx.Rollback(); rbErr != nil {
+					return fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
+				}
+				return fmt.Errorf("execute query fail: %w", err)
+			}
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return uid, err
-	}
-
-	return uid, nil
+	return tx.Commit()
 }
 
 func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
 	var tx *sqlx.Tx = repo.db.MustBegin()
 
-	var uid string = data.Music_id
+	var uid *string = &data.Music_id
 	if data.Music_id == "" {
-		uid = uuid.New().String()
+		data.Music_id = uuid.New().String()
 	}
 
-	qq := `INSERT INTO stream.music (music_id, slug, title, release_date, cover, source_url)
+	q0 := `INSERT INTO stream.music (music_id, slug, title, release_date, cover, source_url)
 	VALUES(:music_id, :slug, :title, :release_date, :cover, :source_url)`
-	_, err := tx.NamedExec(qq, data)
-	if err != nil {
-		if errrb := tx.Rollback(); errrb != nil {
-			return uid, errrb
+	if _, err := tx.NamedExec(q0, &data); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return "", fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 		}
-		return uid, err
+		return "", fmt.Errorf("execute query fail: %w", err)
 	}
 
 	q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
-	artisMusicData := &models.MusicArtis{Music_id: &uid, Artis_id: data.MusicArtis.Artis_id}
-	_, err = tx.NamedExec(q1, artisMusicData)
-	if err != nil {
-		if errrb := tx.Rollback(); errrb != nil {
-			return uid, errrb
+	artisMusicData := &models.MusicArtis{Music_id: *uid, Artis_id: data.MusicArtis.Artis_id}
+	if _, err := tx.NamedExec(q1, artisMusicData); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return "", fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 		}
+		return "", fmt.Errorf("execute query fail: %w", err)
 	}
 
 	q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
 	for _, v := range data.MusicGenre {
-		genreMusicData := &models.GenreMusic{Music_id: &uid, Genre_id: v.Genre_id}
-		_, err := tx.NamedExec(q2, genreMusicData)
-		if err != nil {
-			if errrb := tx.Rollback(); errrb != nil {
-				return uid, errrb
+		genreMusicData := &models.GenreMusic{Music_id: uid, Genre_id: v.Genre_id}
+		if _, err := tx.NamedExec(q2, genreMusicData); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				return "", fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 			}
-			return uid, err
+			return "", fmt.Errorf("execute query fail: %w", err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		return uid, err
+		return *uid, err
 	}
 
-	return uid, nil
+	return *uid, nil
 }
 
 func (repo *MusicRepo) InsertSource(url, uid string) (int64, error) {
