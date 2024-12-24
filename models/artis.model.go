@@ -63,6 +63,7 @@ type MusicArtis struct {
 	Music_id  string `db:"music_id" json:"music_id,omitempty" form:"music_id"`
 	Artis_id  string `db:"artis_id" json:"artis_id,omitempty" form:"artis_id"`
 	ArtisName string `json:"artis_name"`
+	Picture   string `json:"picture"`
 }
 
 type Arties []Artis

@@ -34,6 +34,3 @@ migrate-reset:
 
 migrate-fix:
 	migrate -path ${MIGRATIONS_DIR} -database ${DB_SOURCE} force 0
-
-hello:
-	echo "$DB_PASS"

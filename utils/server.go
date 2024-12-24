@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func NewServer(route *fiber.App) *fiber.App {
@@ -14,6 +15,7 @@ func NewServer(route *fiber.App) *fiber.App {
 	}
 
 	fiberServer := fiber.New()
+	fiberServer.Use(cors.New())
 	fiberServer.Mount("/v1", route)
 
 	go func() {

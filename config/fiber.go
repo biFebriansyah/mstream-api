@@ -25,10 +25,11 @@ var FiberConfig fiber.Config = fiber.Config{
 	Prefork:      true,
 	ServerHeader: "Anonymouse",
 	ErrorHandler: errorHandler,
+	BodyLimit:    20 * 1024 * 1024,
 }
 
 var FiberCors cors.Config = cors.Config{
-	AllowOrigins: "http://localhost:3001",
+	AllowOrigins: "*",
 	AllowHeaders: "*",
 	AllowMethods: strings.Join([]string{
 		fiber.MethodGet,

@@ -12,7 +12,7 @@ import (
 
 func New(db *sqlx.DB, amqp *utils.AmqpConfig) *fiber.App {
 	app := fiber.New(config.FiberConfig)
-	app.Use(cors.New(config.FiberCors))
+	app.Use(cors.New())
 	app.Use(recover.New())
 
 	artisRoute(app, db)

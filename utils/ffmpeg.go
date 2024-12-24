@@ -35,7 +35,7 @@ type outStructure struct {
 func FFmpegExexute(uid, location string) {
 	upload := NewGIO()
 	database := NewDatabase()
-	defer database.Shutdown()
+	// defer database.Shutdown()
 	repos := repositories.NewMusic(database.DB)
 
 	encodeAudio := EncodedAudio(location)
@@ -84,7 +84,7 @@ func GenerateMasterPlaylist(data *[]outStructure) string {
 		}
 
 		for _, v := range saveLine {
-			_, err := masterFile.WriteString(fmt.Sprintf(v + "\n"))
+			_, err := masterFile.WriteString(fmt.Sprint(v + "\n"))
 			if err != nil {
 				fmt.Println(err)
 				masterFile.Close()

@@ -84,7 +84,7 @@ func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return "", fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 		}
-		return "", fmt.Errorf("execute query fail: %w", err)
+		return "", fmt.Errorf("execute query music fail: %w", err)
 	}
 
 	q1 := `INSERT INTO stream.music_artis (music_id, artis_id) VALUES(:music_id, :artis_id) ON CONFLICT ON CONSTRAINT music_artis_unique1 DO NOTHING;`
@@ -93,7 +93,7 @@ func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return "", fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 		}
-		return "", fmt.Errorf("execute query fail: %w", err)
+		return "", fmt.Errorf("execute query music_artis fail: %w", err)
 	}
 
 	q2 := `INSERT INTO stream.music_genre (music_id, genre_id) VALUES(:music_id, :genre_id) ON CONFLICT ON CONSTRAINT music_genre_unique DO NOTHING;`
@@ -103,7 +103,7 @@ func (repo *MusicRepo) InsertData(data *models.MusicData) (string, error) {
 			if rbErr := tx.Rollback(); rbErr != nil {
 				return "", fmt.Errorf("execute query fail: %w; failed to rollback query: %w", err, rbErr)
 			}
-			return "", fmt.Errorf("execute query fail: %w", err)
+			return "", fmt.Errorf("execute query music_genre fail: %w", err)
 		}
 	}
 
@@ -369,7 +369,8 @@ func (repo *MusicRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 		(SELECT 
 			JSONB_BUILD_OBJECT(
 				'artis_id', a.artis_id,
-				'artis_name', CONCAT(a.first_name, ' ' , a.last_name) 
+				'artis_name', CONCAT(a.first_name, ' ' , a.last_name),
+				'picture',  a.picture
 			)
 			FROM stream.artis a
 			JOIN stream.music_artis ma ON a.artis_id = ma.artis_id
@@ -378,7 +379,7 @@ func (repo *MusicRepo) GetAllData(params *config.Pagination) (*config.ResultWarp
 		(SELECT 
 			JSONB_AGG(JSONB_BUILD_OBJECT(
 				'genre_id', g.genre_id,
-				'genre_name', g.genre_name
+				'name', g.name
 			))
 			FROM stream.genre g
 			JOIN stream.music_genre mg ON g.genre_id = mg.genre_id

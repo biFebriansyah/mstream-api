@@ -5,7 +5,9 @@ import (
 	"biFebriansyah/gostream/models"
 	"biFebriansyah/gostream/repositories"
 	"biFebriansyah/gostream/utils"
+	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +29,26 @@ func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 	upload := utils.NewGIO()
 
 	if err := ctx.BodyParser(data); err != nil {
+		log.Println(err)
 		return fiber.ErrBadGateway
+	}
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		log.Println(err)
+		return fiber.ErrBadGateway
+	}
+
+	if artisData, oke := form.Value["music_artis"]; oke {
+		if err := json.Unmarshal([]byte(artisData[0]), &data.MusicArtis); err != nil {
+			return fiber.ErrBadRequest
+		}
+	}
+
+	if genreData, oke := form.Value["music_genre"]; oke {
+		if err := json.Unmarshal([]byte(genreData[0]), &data.MusicGenre); err != nil {
+			return fiber.ErrBadRequest
+		}
 	}
 
 	if file := ctx.Locals("image").(string); file != "" {
@@ -55,8 +76,8 @@ func (music *musicHandler) Create(ctx *fiber.Ctx) error {
 	}
 
 	go clean.Run()
-	return ctx.JSON(utils.Respone(data))
-	// return ctx.JSON(utils.Respone(fmt.Sprintf("%d data created", result)))
+	// return ctx.JSON(utils.Respone(result))
+	return ctx.JSON(utils.Respone(fmt.Sprintf("%s data created", result)))
 }
 
 func (music *musicHandler) Update(ctx *fiber.Ctx) error {
