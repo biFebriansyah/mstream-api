@@ -46,8 +46,8 @@ type MusicData struct {
 	Release_date string       `db:"release_date" json:"release_date" form:"release_date"`
 	Cover        string       `db:"cover" json:"cover" form:"cover"`
 	Source_url   string       `db:"source_url" json:"source_url" form:"source_url"`
-	MusicArtis   MusicArtis   `json:"MusicArtis" xml:"MusicArtis" form:"MusicArtis"`
-	MusicGenre   []GenreMusic `json:"MusicGenre" xml:"MusicGenre" form:"MusicGenre"`
+	MusicArtis   MusicArtis   `json:"music_artis" xml:"MusicArtis" form:"MusicArtis"`
+	MusicGenre   []GenreMusic `json:"music_genre" xml:"MusicGenre" form:"MusicGenre"`
 	CreatedAt    *time.Time   `db:"created_at" json:"created_at"`
 	UpdateAt     *time.Time   `db:"updated_at" json:"updated_at"`
 }

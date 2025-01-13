@@ -16,6 +16,7 @@ func musicRoute(app *fiber.App, db *sqlx.DB, amqp *utils.AmqpConfig) {
 	repos := repositories.NewMusic(db)
 	handler := handlers.NewMusicHandler(repos, amqp)
 
+	music.Get("/status", middleware.SockCheck, utils.FFmpegStatus())
 	music.Get("/slug/:slug", handler.FetchBySlug)
 	music.Get("/:uuid", handler.FetchById)
 	music.Get("/", handler.FetchAll)

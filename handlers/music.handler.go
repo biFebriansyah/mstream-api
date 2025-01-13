@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	fiberutil "github.com/gofiber/fiber/v2/utils"
 )
@@ -155,4 +157,21 @@ func (music *musicHandler) FetchAll(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(utils.Respone(result))
+}
+
+func (music *musicHandler) TestSocket(ctx *websocket.Conn) {
+	totalSteps := 100
+	for i := 0; i <= totalSteps; i++ {
+		progress := int(float64(i) / float64(totalSteps) * 100)
+
+		// Send progress update
+		if err := ctx.WriteMessage(websocket.TextMessage, []byte(strconv.Itoa(progress))); err != nil {
+			log.Println("Failed to send progress:", err)
+			break
+		}
+
+		// Simulate work
+		time.Sleep(50 * time.Millisecond)
+	}
+
 }

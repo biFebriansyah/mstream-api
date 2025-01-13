@@ -25,7 +25,7 @@ var FiberConfig fiber.Config = fiber.Config{
 	Prefork:      true,
 	ServerHeader: "Anonymouse",
 	ErrorHandler: errorHandler,
-	BodyLimit:    20 * 1024 * 1024,
+	BodyLimit:    40 * 1024 * 1024,
 }
 
 var FiberCors cors.Config = cors.Config{

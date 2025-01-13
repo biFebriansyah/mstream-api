@@ -9,11 +9,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-type Test struct {
-	a int
-	s string
-}
-
 func main() {
 
 	database := utils.NewDatabase()
@@ -36,4 +31,6 @@ func main() {
 	})
 
 	<-wait
+
+	// ExampleShowProgress("input_test.mp3", "input_outpu.mp3")
 }
